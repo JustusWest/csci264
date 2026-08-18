@@ -1,0 +1,236 @@
+Introduction to C
+
+    C is a high-level, imperative, procedural programming lanuage. It is generally considered the lowest level of the "high-level" languages.
+    C has less high level abstraction, which makes it more labor intensive to use, but places you closer to the hardware.
+
+1.1 Getting Started (https://diveintosystems.org/book/C1-C_intro/getting_started.html)
+    hello.py:
+        '''
+            The Hello World Program in Python
+        '''
+
+        # Python math library
+        from math import *
+
+
+        # main function definition:
+        def main():
+            # statements on their own line
+            print("Hello World")
+            print("sqrt(4) is %f" % (sqrt(4)))
+
+        # call the main function:
+        main()
+
+    hello.c
+        /*
+            The Hello World Program in C
+        */
+
+        /* C math and I/O libraries */
+        #include <math.h>
+        #include <stdio.h>
+
+        /* main function definition: */
+        int main(void) {
+            // statements end in a semicolon (;)
+            printf("Hello World\n");
+            printf("sqrt(4) is %f\n", sqrt(4));
+
+            return 0;  // main returns value 0
+        }
+
+    some notable differences:
+        comments - # in python, // in C
+        imports -  `import` in python, `include` in c
+        blocks - python uses indentation, C uses `{}`, `;`
+
+    The `main` function:
+        Every C program must have a function named `main` and its return type must be `int`.
+            the `main` function is automatically called when the program executes
+            by convention `main` should return `0` if it runs with no errors
+    
+    Python programs are intepreted
+        (link to intepreted.png)
+    
+    C programs must be compiled
+        A C compiler is a program that translates C source code into a binary executable
+
+        ```
+            $ gcc hello.c
+            $ ./a.out
+        ```
+        (insert compile.png)
+
+    How to write and run a C program:
+        Write the file
+            $nano hello.C
+        Compile it - it will automatically compile to a.out
+            $ gcc <source file>
+        To specify the output file name
+            $ gcc -o <output_executable_file> <input_source_file> 
+
+        ```
+            gcc -o hello hello.c
+            ./hello
+        ```
+
+Variable and C Numeric Types
+    C uses Variables as named storage locations. Variables have scope and type 
+        scope: where the variable is usable
+        type: what it can store
+    All variables must be declared with the following syntax:
+        `type_name variable_name;`
+    One type per variable, basic variable types:
+        - char
+        - int
+        - float
+        - double
+    
+    ```
+        {
+            /* 1. Define variables in this block's scope at the top of the block. */
+
+            int x; // declares x to be an int type variable and allocates space for it
+
+            int i, j, k;  // can define multiple variables of the same type like this
+
+            char letter;  // a char stores a single-byte integer value
+                        // it is often used to store a single ASCII character
+                        // value (the ASCII numeric encoding of a character)
+                        // a char in C is a different type than a string in C
+
+            float winpct; // winpct is declared to be a float type
+            double pi;    // the double type is more precise than float
+
+            /* 2. After defining all variables, you can use them in C statements. */
+
+            x = 7;        // x stores 7 (initialize variables before using their value)
+            k = x + 2;    // use x's value in an expression
+
+            letter = 'A';        // a single quote is used for single character value
+            letter = letter + 1; // letter stores 'B' (ASCII value one more than 'A')
+
+            pi = 3.1415926;
+
+            winpct = 11 / 2.0; // winpct gets 5.5, winpct is a float type
+            j = 11 / 2;        // j gets 5: int division truncates after the decimal
+            x = k % 2;         // % is C's mod operator, so x gets 9 mod 2 (1)
+        }
+    ```
+
+    Numeric Literals:
+    ```
+        8     // the int value 8
+        3.4   // the double value 3.4
+        'h'   // the char value 'h' (its value is 104, the ASCII value of h)
+    ```
+
+    Numeric Types:
+        Make it a table-
+            char, 1byte, integers, char x;
+            short, 2byte, signed int, short x;
+            int, 4byte, signed int, int x;
+            long, 4 or 8 byte, signed int, long x;
+            float, 4 byte, signed real num, float x;
+            double, 8 byte, signed real num, double x;
+        Each of these types can be used unsigned by specifying `unsigned int x;`
+
+    Arthimetic Operators:
+        +, -, *, /, %
+        C will perform automatic type conversion if theres a mismatch
+        mod only works with 2 int
+        assignment with `=`, assignment with op ``+=``, increment/decrement with `++` or `--`
+
+
+1.2 Input/output (https://diveintosystems.org/book/C1-C_intro/input_output.html)
+
+    `printf` prints a formatted string very similar to python
+
+    Syntax comparison for printing:
+        python:
+            ```
+                def main():
+
+                print("Name: %s,  Info:" % "Vijay")
+                print("\tAge: %d \t Ht: %g" %(20,5.9))
+                print("\tYear: %d \t Dorm: %s" %(3, "Alice Paul"))
+
+                # call the main function:
+                main()
+            ```
+        C:
+            ```
+                    /* C printf example */
+                    #include <stdio.h> // needed for printf
+
+                    int main(void) {
+
+                        printf("Name: %s,  Info:\n", "Vijay");
+                        printf("\tAge: %d \t Ht: %g\n",20,5.9);
+                        printf("\tYear: %d \t Dorm: %s\n",
+                                3,"Alice Paul");
+
+                        return 0;
+                    }
+            ```
+
+    Formatting placeholders:
+        ```
+            %g:  placeholder for a float (or double) value
+            %d:  placeholder for a decimal value (int, short, char)
+            %s:  placeholder for a string value
+            %c:  placeholder for a char value - useful for ASCII
+        ```
+
+    `char` values:
+        ```
+        char ch;
+
+        ch = 'A';
+        printf("ch value is %d which is the ASCII value of  %c\n", ch, ch);
+
+        ch = 99;
+        printf("ch value is %d which is the ASCII value of  %c\n", ch, ch);
+
+
+        ch value is 65 which is the ASCII value of  A
+        ch value is 99 which is the ASCII value of  c
+        ```
+
+    `scanf` to read in values entered by the user
+        python:
+        ```
+            # Python input example
+            def main():
+
+
+                num1 = input("Enter a number:")
+                num1 = int(num1)
+                num2 = input("Enter another:")
+                num2 = int(num2)
+
+                print("%d + %d = %d" % (num1, num2, (num1+num2)))
+
+            # call the main function:
+            main()
+        ```
+
+        C version:
+        ```
+            /* C input (scanf) example */
+            #include <stdio.h>
+
+            int main(void) {
+                int num1, num2;
+
+                printf("Enter a number: ");
+                scanf("%d", &num1);
+                printf("Enter another: ");
+                scanf("%d", &num2);
+
+                printf("%d + %d = %d\n", num1, num2, (num1+num2));
+
+                return 0;
+            }
+        ```
