@@ -14,3 +14,7 @@ defaults:
       type: lectures
     values:
       layout: page
+header_pages:
+  - lectures.md
+  - labs.md
+  - code.md

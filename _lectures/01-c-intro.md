@@ -2,9 +2,9 @@
 title: "01 C Basics: Compiling, Variables, and I/O"
 ---
 
-*Reading: Dive into Systems §1.1–1.2*
+[*Reading: Dive into Systems §1.1–1.2*](https://diveintosystems.org/book/C1-C_intro/getting_started.html)
 
-C is a high-level, imperative, procedural programming language. It's often considered the "lowest level" of the high-level languages: it gives you less built-in abstraction than something like Python, which makes it more labor-intensive to write, but puts you much closer to the hardware — which is exactly why we start with it in this course.
+C is a high-level, imperative, procedural programming language. It's often considered the "lowest level" of the high-level languages: it gives you less built-in abstraction than something like Python, which makes it more labor-intensive to write, but puts you much closer to the hardware.
 
 ## From Python to C: A First Program
 
