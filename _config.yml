@@ -1,0 +1,15 @@
+title: CSCI 264 — Assembly Language and Computer Structure
+description: Lecture notes, Fall 2026
+baseurl: "/csci264"
+theme: minima
+markdown: kramdown
+collections:
+  lectures:
+    output: true
+    permalink: /lectures/:name/
+defaults:
+  - scope:
+      path: ""
+      type: lectures
+    values:
+      layout: page
