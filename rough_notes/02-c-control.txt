@@ -1,0 +1,202 @@
+Dive into Systems 1.3, 1.4, 1.5
+
+https://diveintosystems.org/book/C1-C_intro/conditionals.html
+
+
+1.3 conditionals and loops
+
+        INSERT python vs C if statement syntax comparison
+
+        INSERT C if else syntax example
+    
+    Boolean Values in C
+        C has no boolean. Instead integers are evaluated:
+            false when zero (0)
+            true when non-zero (positive or negative)
+        Relational Operators
+            equality: == and !=
+            comparson: <, >, <=, >=
+
+        Logical Operators:
+            negation !
+            and &&
+            or ||
+
+        INSERT code snippet for comparison, relational and Logical
+
+    Loops in C
+        INSERT code snippet comparing while loop in python and C
+            same snippet with do-while structure
+        
+        INSERT code snippet comparing for loop in python and C
+
+1.4 Functions
+    key terms:
+        parameter - input to the function
+        return - output of the function
+        declaration or prototype - specifies function name, parameter list and output type
+        definition - the code that is execute when the function is called
+    ```
+        // function definition format:
+        // ---------------------------
+        <return type> <function name> (<parameter list>)
+        {
+            <function body>
+        }
+
+        // parameter list format:
+        // ---------------------
+        <type> <param1 name>, <type> <param2 name>, ...,  <type> <last param name>
+    ```
+
+    For example, here is a function which computes the larger of two values:
+        make collapsible
+        ```
+            /* This program computes the larger of two
+            * values entered by the user.
+            */
+            #include <stdio.h>
+
+            /* max: computes the larger of two integer values
+            *   x: one integer value
+            *   y: the other integer value
+            *   returns: the larger of x and y
+            */
+            int max(int x, int y) {
+                int bigger;
+
+                bigger = x;
+                if (y > x) {
+                    bigger = y;
+                }
+                printf("  in max, before return x: %d y: %d\n", x, y);
+                return bigger;
+            }
+        ```
+        A function call invokes a specific instance of the function, passing specific argument values:
+        ```
+            // function call format:
+            // ---------------------
+            function_name(<argument list>);
+
+
+            // argument list format:
+            // ---------------------
+            <argument 1 expression>, <argument 2 expression>, ...,  <last argument expression>
+        ```
+
+    The Stack
+        The execution stack keeps track of the state of active functions. Each funcation call creates a new stack frame.
+        
+        ```
+            /* This file shows examples of defining and calling C functions.
+            * It also demonstrates using scanf().
+            */
+
+            #include <stdio.h>
+
+            /* This is an example of a FUNCTION PROTOTYPE.  It declares just the type
+            * information for a function (the function's name, return type, and parameter
+            * list). A prototype is used when code in main wants to call the function
+            * before its full definition appears in the file.
+            */
+            int max(int n1, int n2);
+
+            /* A prototype for another function.  void is the return type of a function
+            * that does not return a value
+            */
+            void print_table(int start, int stop);
+
+            /* All C programs must have a main function.  This function defines what the
+            * program does when it begins executing, and it's typically used to organize
+            * the big-picture behavior of the program.
+            */
+            int main(void) {
+                int x, y, larger;
+
+                printf("This program will operate over two int values.\n");
+
+                printf("Enter the first value: ");
+                scanf("%d", &x);
+
+                printf("Enter the second value: ");
+                scanf("%d", &y);
+
+                larger = max(x, y);
+
+                printf("The larger of %d and %d is %d\n", x, y, larger);
+
+                print_table(x, larger);
+
+                return 0;
+            }
+
+            /* This is an example of a FUNCTION DEFINITION.  It specifies not only the
+            * function name and type, but it also fully defines the code of its body.
+            * (Notice, and emulate, the complete function comment!)
+            */
+            /* Computes the max of two integer values.
+            *   n1: the first value
+            *   n2: the other value
+            *   returns: the larger of n1 and n2
+            */
+            int max(int n1, int n2)  {
+                int result;
+
+                result = n1;
+
+                if (n2 > n1) {
+                    result = n2;
+                }
+
+                return result;
+            }
+
+            /* prints out the squares from start to stop
+            *   start: the beginning of the range
+            *   stop: the end of the range
+            */
+            void print_table(int start, int stop) {
+                int i;
+
+                for (i = start; i <= stop; i++) {
+                    printf("%d\t", i*i);
+                }
+
+                printf("\n");
+            }
+        ```
+1.5 Arrays and Strings
+    An array is an ordered collection of data of the same type.
+    INSERT python vs C syntax comparison for array of ints 
+
+    Values in an array can be accessed through indexing:
+        ```
+            my_arr[3] = 100;  // C syntax to set the element in position 3 to 100.
+
+            my_arr[0] = 5;    // C syntax to set the first element to 5.
+        ```
+    These are static arrays, which require us to specify the capacity of the array at declaration:
+        ```
+            int  arr[10];  // declare an array of 10 ints
+
+            char str[20];  // declare an array of 20 chars
+        ```
+    In C, individual array elements are allocated to consecutive locations in memory.
+
+    Array Access 
+        Unlike python, C only supports accessing an array by indexing:
+        ```
+            int i, num;
+            int arr[10];  // declare an array of ints, with a capacity of 10
+
+            num = 6;      // keep track of how many elements of arr are used
+
+            // initialize first 5 elements of arr (at indices 0-4)
+            for (i=0; i < 5; i++) {
+                arr[i] = i * 2;
+            }
+
+            arr[5] = 100; // assign the element at index 5 the value 100
+        ```
+        

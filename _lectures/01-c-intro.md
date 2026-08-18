@@ -10,6 +10,8 @@ C is a high-level, imperative, procedural programming language. It's often consi
 
 Here's the classic "Hello World" program, written first in Python and then in C, so we can compare syntax directly.
 
+<details class="code-example">
+<summary>Show code: hello.py / hello.c</summary>
 <table>
 <tr>
 <th>hello.py</th>
@@ -57,6 +59,7 @@ int main(void) {
 </td>
 </tr>
 </table>
+</details>
 
 A few notable differences between the two:
 
@@ -72,7 +75,7 @@ A few notable differences between the two:
 
 Python programs are **interpreted**: the Python interpreter reads and executes your source code directly.
 
-![A Python program is directly executed by the Python interpreter]({{ "/figures/interpreted.png" | relative_url }})
+![A Python program is directly executed by the Python interpreter]({{ "/figures/ch1/interpreted.png" | relative_url }})
 
 C programs must be **compiled** before they can run. A C compiler is a program that translates C source code into a binary executable — a file of 0s and 1s that the underlying hardware can run directly. We'll use the GNU C compiler, `gcc`.
 
@@ -81,7 +84,7 @@ $ gcc hello.c
 $ ./a.out
 ```
 
-![gcc translates C source code into a binary executable, a.out, which the system then runs directly]({{ "/figures/compile.png" | relative_url }})
+![gcc translates C source code into a binary executable, a.out, which the system then runs directly]({{ "/figures/ch1/compile.png" | relative_url }})
 
 **Steps to write and run a C program:**
 
@@ -180,6 +183,9 @@ Any integer type can be made unsigned by adding the `unsigned` keyword, e.g. `un
 
 `printf` prints a formatted string, similar to Python's formatted `print`. Both `printf` and `scanf` come from C's standard I/O library, so any file that uses them needs `#include <stdio.h>` at the top.
 
+<details class="code-example" markdown="1">
+<summary>Show code: printf example</summary>
+
 **Python:**
 ```python
 def main():
@@ -206,6 +212,8 @@ int main(void) {
     return 0;
 }
 ```
+
+</details>
 
 Both versions print identically formatted output. The main difference: Python's `print` adds a trailing newline automatically, but C's `printf` does not — so C format strings need an explicit `\n` wherever a newline is wanted. For each placeholder in the format string, `printf` expects one additional argument.
 
@@ -242,6 +250,9 @@ ch value is 99 which is the ASCII value of  c
 
 **`scanf`** reads values typed in by the user (from stdin) and stores them in program variables. It's picky about the exact format of the input — if your program seems to hang waiting on badly-formed input, `Ctrl-C` will terminate it. (Chapter 2 covers more robust ways to read input.)
 
+<details class="code-example" markdown="1">
+<summary>Show code: scanf example</summary>
+
 **Python:**
 ```python
 def main():
@@ -274,5 +285,7 @@ int main(void) {
     return 0;
 }
 ```
+
+</details>
 
 Note the `&` before each variable name in `scanf`: `scanf` needs the *address* of the variable so it knows where in memory to store the value it reads, rather than the variable's current value. We'll come back to what `&` really means when we get to pointers.
