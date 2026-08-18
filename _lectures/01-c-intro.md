@@ -10,7 +10,13 @@ C is a high-level, imperative, procedural programming language. It's often consi
 
 Here's the classic "Hello World" program, written first in Python and then in C, so we can compare syntax directly.
 
-**hello.py**
+<table>
+<tr>
+<th>hello.py</th>
+<th>hello.c</th>
+</tr>
+<tr>
+<td markdown="1">
 ```python
 '''
     The Hello World Program in Python
@@ -28,8 +34,8 @@ def main():
 # call the main function:
 main()
 ```
-
-**hello.c**
+</td>
+<td markdown="1">
 ```c
 /*
     The Hello World Program in C
@@ -48,6 +54,9 @@ int main(void) {
     return 0;  // main returns value 0
 }
 ```
+</td>
+</tr>
+</table>
 
 A few notable differences between the two:
 
