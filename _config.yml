@@ -1,8 +1,9 @@
-title: CSCI 264 — Assembly Language and Computer Structure
+title: CSCI 264 — Assembly Language
 description: Lecture notes, Fall 2026
 baseurl: "/csci264"
 theme: minima
 markdown: kramdown
+future: true
 collections:
   lectures:
     output: true

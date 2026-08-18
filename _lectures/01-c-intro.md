@@ -1,6 +1,5 @@
 ---
-title: "C Basics: Compiling, Variables, and I/O"
-date: 2026-08-26
+title: "01 C Basics: Compiling, Variables, and I/O"
 ---
 
 *Reading: Dive into Systems §1.1–1.2*
