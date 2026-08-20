@@ -199,4 +199,42 @@ https://diveintosystems.org/book/C1-C_intro/conditionals.html
 
             arr[5] = 100; // assign the element at index 5 the value 100
         ```
-        
+        These are statically declared arrays (dynamic later) meaning the capacity is fixed.
+        What happens if we try to access an array out of index:
+        ```
+            int array[10];   // an array of size 10 has valid indices 0 through 9
+
+            array[10] = 100;  // 10 is not a valid index into the array
+        ```
+        The C compiler is happy to compile code that accesses array positions beyond the bounds of the array; there is no bounds checking by the compiler or at runtime. As a result, running this code can lead to unexpected program behavior (and the behavior might differ from run to run). It can lead to your program crashing, it can change another variable’s value, or it might have no effect on your program’s behavior. In other words, this situation leads to a program bug that might or might not show up as unexpected program behavior. Thus, as a C programmer, it’s up to you to ensure that your array accesses refer to valid positions!
+
+    Intro to Strings and the C String Library
+        Recall that arrays in C might be defined with a larger size than a program ultimately uses.
+         For this reason, strings in C must end with a special character value, the null character ('\0'), to indicate the end of the string.
+         Strings that end with a null character are said to be null-terminated. Although all strings in C should be null-terminated, failing to properly account for null characters is a common source of errors for novice C programmers.
+
+         ```
+            #include <stdio.h>
+            #include <string.h>   // include the C string library
+
+            int main(void) {
+                char str1[10];
+                char str2[10];
+                int len;
+
+                str1[0] = 'h';
+                str1[1] = 'i';
+                str1[2] = '\0';
+
+                len = strlen(str1);
+
+                printf("%s %d\n", str1, len);  // prints: hi 2
+
+                strcpy(str2, str1);     // copies the contents of str1 to str2
+                printf("%s\n", str2);   // prints:  hi
+
+                strcpy(str2, "hello");  // copy the string "hello" to str2
+                len = strlen(str2);
+                printf("%s has %d chars\n", str2, len);   // prints: hello has 5 chars
+            }
+        ```
