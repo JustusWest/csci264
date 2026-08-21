@@ -2,9 +2,19 @@
 title: "01 C Basics: Compiling, Variables, and I/O"
 ---
 
-[*Reading: Dive into Systems §1.1–1.2*](https://diveintosystems.org/book/C1-C_intro/getting_started.html)
+[_Reading: Dive into Systems §1.1–1.2_](https://diveintosystems.org/book/C1-C_intro/getting_started.html)
+
+## Why is it called C?
+
+![Bell Labs in Holmdel, NJ.]({{ "/figures/ch1/Bell_Labs_Holmdel.jpg" | relative_url }})
+
+C was developed by Dennis Ritchie between 1972 and 1973 at Bell Labs as a successor to the B programming language. (third times the charm)
 
 C is a high-level, imperative, procedural programming language. It's often considered the "lowest level" of the high-level languages: it gives you less built-in abstraction than something like Python, which makes it more labor-intensive to write, but puts you much closer to the hardware.
+
+## Why should we learn C?
+
+https://www.youtube.com/watch?v=CYvJPra7Ebk
 
 ## From Python to C: A First Program
 
@@ -25,17 +35,20 @@ Here's the classic "Hello World" program, written first in Python and then in C,
 '''
 
 # Python math library
-from math import *
+
+from math import \*
 
 # main function definition:
-def main():
-    # statements on their own line
-    print("Hello World")
-    print("sqrt(4) is %f" % (sqrt(4)))
+
+def main(): # statements on their own line
+print("Hello World")
+print("sqrt(4) is %f" % (sqrt(4)))
 
 # call the main function:
+
 main()
-```
+
+````
 </td>
 <td markdown="1">
 ```c
@@ -55,7 +68,8 @@ int main(void) {
 
     return 0;  // main returns value 0
 }
-```
+````
+
 </td>
 </tr>
 </table>
@@ -63,11 +77,11 @@ int main(void) {
 
 A few notable differences between the two:
 
-| | Python | C |
-|---|---|---|
-| Comments | `#` | `//` (single line), `/* ... */` (multi-line) |
-| Importing libraries | `import` | `#include` (always at the top of the file, outside any function) |
-| Blocks | indentation | `{ }` to start/end a block, `;` to end a statement |
+|                     | Python      | C                                                                |
+| ------------------- | ----------- | ---------------------------------------------------------------- |
+| Comments            | `#`         | `//` (single line), `/* ... */` (multi-line)                     |
+| Importing libraries | `import`    | `#include` (always at the top of the file, outside any function) |
+| Blocks              | indentation | `{ }` to start/end a block, `;` to end a statement               |
 
 **The `main` function.** Every C program must have a function named `main`, and its return type must be `int`. `main` is called automatically when the program executes, and by convention it returns `0` to signal that the program ran with no errors. The `void` between the parentheses means this version of `main` doesn't take any parameters (later we'll see `main` accept command-line arguments).
 
@@ -156,19 +170,19 @@ All variables must be declared before use, with the syntax `type_name variable_n
 'h'   // the char value 'h' (its ASCII value is 104)
 ```
 
-Note: `'h'` (single quotes) is a `char` literal — the value 104. `"h"` (double quotes) is a *string* literal, which is a different type entirely and is not the value 104.
+Note: `'h'` (single quotes) is a `char` literal — the value 104. `"h"` (double quotes) is a _string_ literal, which is a different type entirely and is not the value 104.
 
 **Numeric types:**
 
-| Type | Usual size | Stores | Declaration |
-|---|---|---|---|
-| `char` | 1 byte | integers | `char x;` |
-| `short` | 2 bytes | signed integers | `short x;` |
-| `int` | 4 bytes | signed integers | `int x;` |
-| `long` | 4 or 8 bytes | signed integers | `long x;` |
-| `long long` | 8 bytes | signed integers | `long long x;` |
-| `float` | 4 bytes | signed real numbers | `float x;` |
-| `double` | 8 bytes | signed real numbers | `double x;` |
+| Type        | Usual size   | Stores              | Declaration    |
+| ----------- | ------------ | ------------------- | -------------- |
+| `char`      | 1 byte       | integers            | `char x;`      |
+| `short`     | 2 bytes      | signed integers     | `short x;`     |
+| `int`       | 4 bytes      | signed integers     | `int x;`       |
+| `long`      | 4 or 8 bytes | signed integers     | `long x;`      |
+| `long long` | 8 bytes      | signed integers     | `long long x;` |
+| `float`     | 4 bytes      | signed real numbers | `float x;`     |
+| `double`    | 8 bytes      | signed real numbers | `double x;`    |
 
 Any integer type can be made unsigned by adding the `unsigned` keyword, e.g. `unsigned int x;`. These sizes are typical, not guaranteed by the language — the exact size depends on the hardware architecture. You can check the size on a given machine with the `sizeof` operator, e.g. `sizeof(int)`.
 
@@ -187,6 +201,7 @@ Any integer type can be made unsigned by adding the `unsigned` keyword, e.g. `un
 <summary>Show code: printf example</summary>
 
 **Python:**
+
 ```python
 def main():
     print("Name: %s,  Info:" % "Vijay")
@@ -198,6 +213,7 @@ main()
 ```
 
 **C:**
+
 ```c
 /* C printf example */
 #include <stdio.h> // needed for printf
@@ -219,16 +235,16 @@ Both versions print identically formatted output. The main difference: Python's 
 
 **Formatting placeholders:**
 
-| Placeholder | Meaning |
-|---|---|
-| `%d` | decimal value (`int`, `short`, `char`) |
-| `%g` | float or double value |
-| `%s` | string value |
-| `%c` | char value — prints the ASCII character |
-| `%x` | value in hexadecimal |
-| `%o` | value in octal |
-| `%u` | unsigned decimal value |
-| `%e` | float/double in scientific notation |
+| Placeholder | Meaning                                 |
+| ----------- | --------------------------------------- |
+| `%d`        | decimal value (`int`, `short`, `char`)  |
+| `%g`        | float or double value                   |
+| `%s`        | string value                            |
+| `%c`        | char value — prints the ASCII character |
+| `%x`        | value in hexadecimal                    |
+| `%o`        | value in octal                          |
+| `%u`        | unsigned decimal value                  |
+| `%e`        | float/double in scientific notation     |
 
 There is no placeholder for printing a value directly in binary.
 
@@ -243,6 +259,7 @@ printf("ch value is %d which is the ASCII value of  %c\n", ch, ch);
 ch = 99;
 printf("ch value is %d which is the ASCII value of  %c\n", ch, ch);
 ```
+
 ```text
 ch value is 65 which is the ASCII value of  A
 ch value is 99 which is the ASCII value of  c
@@ -254,6 +271,7 @@ ch value is 99 which is the ASCII value of  c
 <summary>Show code: scanf example</summary>
 
 **Python:**
+
 ```python
 def main():
     num1 = input("Enter a number:")
@@ -268,6 +286,7 @@ main()
 ```
 
 **C:**
+
 ```c
 /* C input (scanf) example */
 #include <stdio.h>
@@ -288,4 +307,4 @@ int main(void) {
 
 </details>
 
-Note the `&` before each variable name in `scanf`: `scanf` needs the *address* of the variable so it knows where in memory to store the value it reads, rather than the variable's current value. We'll come back to what `&` really means when we get to pointers.
+Note the `&` before each variable name in `scanf`: `scanf` needs the _address_ of the variable so it knows where in memory to store the value it reads, rather than the variable's current value. We'll come back to what `&` really means when we get to pointers.
