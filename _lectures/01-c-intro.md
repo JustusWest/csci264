@@ -14,7 +14,7 @@ C is a high-level, imperative, procedural programming language. It's often consi
 
 ## Why should we learn C?
 
-https://www.youtube.com/watch?v=CYvJPra7Ebk
+{% include youtube.html id="CYvJPra7Ebk" title="Linus Torvalds: Nothing better than C" caption="Linus Torvalds on why C is still the right tool for systems work." %}
 
 ## From Python to C: A First Program
 

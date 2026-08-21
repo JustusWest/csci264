@@ -52,3 +52,22 @@
 .code-example table {
   margin: 0;
 }
+
+.video-embed {
+  margin: 1.5em 0;
+}
+
+.video-embed iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border: 1px solid #b8c9dc;
+  border-radius: 4px;
+}
+
+.video-embed figcaption {
+  margin-top: 0.5em;
+  font-size: 0.9em;
+  color: #555;
+}

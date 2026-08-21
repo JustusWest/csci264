@@ -1,0 +1,17 @@
+{%- comment -%}
+  Responsive YouTube embed.
+  Usage: {% include youtube.html id="VIDEO_ID" title="Video title" caption="Optional caption" %}
+  Only `id` is required.
+{%- endcomment -%}
+<figure class="video-embed">
+  <iframe
+    src="https://www.youtube-nocookie.com/embed/{{ include.id }}"
+    title="{{ include.title | default: 'YouTube video' }}"
+    loading="lazy"
+    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerpolicy="strict-origin-when-cross-origin"
+    allowfullscreen></iframe>
+  {%- if include.caption %}
+  <figcaption>{{ include.caption }}</figcaption>
+  {%- endif %}
+</figure>
