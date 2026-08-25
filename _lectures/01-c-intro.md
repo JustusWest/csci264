@@ -308,3 +308,5 @@ int main(void) {
 </details>
 
 Note the `&` before each variable name in `scanf`: `scanf` needs the _address_ of the variable so it knows where in memory to store the value it reads, rather than the variable's current value. We'll come back to what `&` really means when we get to pointers.
+
+For some practice, try the Exercises from the book: https://diveintosystems.org/exercises/section-1_1.html

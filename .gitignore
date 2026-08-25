@@ -1,4 +1,7 @@
 _site/
 .jekyll-cache/
 .sass-cache/
+demo/
 Gemfile.lock
+a.out
+*.s
