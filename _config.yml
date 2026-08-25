@@ -8,10 +8,18 @@ collections:
   lectures:
     output: true
     permalink: /lectures/:name/
+  code_chapters:
+    output: true
+    permalink: /code/:path/
 defaults:
   - scope:
       path: ""
       type: lectures
+    values:
+      layout: page
+  - scope:
+      path: ""
+      type: code_chapters
     values:
       layout: page
 header_pages:
