@@ -1,0 +1,69 @@
+Lecture 3 - Chapter 4 Binary and Data Representation
+
+At the base level we represent information using **binary**, meaning two as in it can take one of two states.
+On hardware this state is the presence or absence of voltage.
+In theory, we think of these as 0s and 1s - refered to as **bits**
+Through increasing complexity we can represent any information as a combination of 0s and 1s.
+The number of unique values we can represent doubles each time we add a bit, formally N bits can represent 2^N unique values.
+We commonly group bits into longer sequences called **bytes** which is 8 bits. 2^8=256 so we get 256 unqiue values from one byte
+Modern CPUs typically define a **word** of either 32 or 64 bits.
+
+4.1 Number Bases and Unsigned Integers
+
+4.1.1 Decimal
+In everyday life we use the **Decimal** number system, which is _base 10_, thus each digit can hold 10 unique values (0-9)
+To store a value greater than 9, we carry over to the next digit to the left.
+The position of each digit indicates its factor, or how much it contributes to the final value.
+Insert figures/ch4/BaseTen
+
+Or we can express the number as: (8 × 103)    +    (4 × 102)    +    (2 × 101)    +    (5 × 100)
+
+4.1.2 Unsigned Binary Numbers
+    Binary uses a base of 2 instead of decimal's 10
+
+    An individual bit may contain one of two unique values, 0 or 1.
+    To store a value greater than 1, we must carry to the next bit to the left
+    Each bit contributes an additional factor of 2.
+
+    Board exercise of counting the first few natural numbers in binary
+
+    This gives use a formula for the unsigned value of any binary number:
+    (1 × 23)    +    (0 × 22)    +    (0 × 21)    +    (0 × 20) =    8 + 0 + 0 + 0    =    8
+
+4.1.3 Hexadecimal
+
+    So we have two systems to represent numbers. Decimal is natural to humans (from experience).
+    Binary is natural for computers because we can represent it with voltage.
+    So why use a third?
+    Binary is very hard to read, but it does not convert cleanly to decimal. To make something more legible with a clean conversion, we introduce Hexadecimal which is base 16.
+    1. Now one digit represents 16 values, but we've run out of numbers so we use letters (0-F)
+    2. Our same formula works by swapping the base of the exponent:
+
+       (2 × 163)    +    (3 × 162)    +    (C × 161)    +    (8 × 160)
+
+  =    (2 × 163)    +    (3 × 162)    +    (12 × 161)    +    (8 × 160)
+
+  =    (2 × 4096)    +    (3 × 256)    +    (12 × 16)    +    (8 × 1)
+
+  =    8192 + 768 + 192 + 8    =    9160
+
+4.1.4 Storage Limitations
+
+    There an infinetly many unsigned integers (and infinetly many more floating point numbers). In practice, we have to decide how much memory to allocate to a variable.
+    C does this with it's types, `long` stores larger numbers than `short`
+Insert figures/ch4/UnsignedLine
+
+Attempting to store a larger value to a variable than the variable’s size allows is known as integer overflow. This chapter defers the details of overflow to a later section. For now, think of it like a car’s odometer that "rolls over" back to zero if it attempts to increase beyond its maximum value. Similarly, subtracting one from zero yields the maximum value.
+
+4.2 Converting between Bases
+
+One of the main reasons we use hex is because it is easier to convert to and from binary.
+Since hex is base 16, each digit in hex can be equivalently represented by 4 bits in binary.
+
+Table of first 16 values of Binary and Hexadecimal
+
+Board example of converting 0xB491 to binary
+Board example of convert 0b1111011001 to hex
+
+4.2.2 Converting from Decimal
+    Insert explanation and board examples of the repeated division algorithm from Lab 1.
