@@ -40,9 +40,9 @@ from math import \*
 
 # main function definition:
 
-def main(): # statements on their own line
-print("Hello World")
-print("sqrt(4) is %f" % (sqrt(4)))
+def main():
+    print("Hello World")
+    print("sqrt(4) is %f" % (sqrt(4)))
 
 # call the main function:
 
@@ -98,6 +98,8 @@ $ gcc hello.c
 $ ./a.out
 ```
 
+What does `GNU` stand for?
+
 ![gcc translates C source code into a binary executable, a.out, which the system then runs directly]({{ "/figures/ch1/compile.png" | relative_url }})
 
 **Steps to write and run a C program:**
@@ -121,8 +123,7 @@ $ ./a.out
    $ ./hello
    ```
 
-Any time you edit the source file, you have to recompile it — `gcc` does not do this automatically, and an old executable can silently linger if a later compile fails.
-
+Any time you edit the source file, you have to recompile it — `gcc` does not do this automatically.
 ## Variables and C Numeric Types
 
 C uses **variables** as named storage locations. Every variable has:
@@ -190,12 +191,14 @@ Any integer type can be made unsigned by adding the `unsigned` keyword, e.g. `un
 
 - C performs automatic type conversion when an operator combines operands of different types (e.g. combining an `int` with a `float` converts the `int` to `float` first).
 - `%` (mod) only works on integer operands.
-- **Integer division truncates.** If both operands of `/` are integer types, the result is an integer, and anything past the decimal point is discarded (`11 / 2` evaluates to `5`). If either operand is a `float`/`double`, `/` performs real division (`11 / 2.0` evaluates to `5.5`). This distinction comes up constantly — watch for it.
-- Assignment: `=`. Assignment with update: `+=`, `-=`, `*=`, `/=`, `%=`. Increment/decrement: `++`, `--`.
+- **Integer division truncates.** If both operands of `/` are integer types, the result is an integer, and anything past the decimal point is discarded (`11 / 2` evaluates to `5`). If either operand is a `float` or `double`, `/` performs real division (`11 / 2.0` evaluates to `5.5`).
+- Assignment: `=`. 
+- Assignment with update: `+=`, `-=`, `*=`, `/=`, `%=`. 
+- Increment/decrement: `++`, `--`.
 
 ## Input and Output: `printf` and `scanf`
 
-`printf` prints a formatted string, similar to Python's formatted `print`. Both `printf` and `scanf` come from C's standard I/O library, so any file that uses them needs `#include <stdio.h>` at the top.
+`printf` prints a formatted string, similar to Python's formatted `print`. Both `printf` and `scanf` come from C's standard I/O library - `#include <stdio.h>`
 
 <details class="code-example" markdown="1">
 <summary>Show code: printf example</summary>
@@ -231,7 +234,7 @@ int main(void) {
 
 </details>
 
-Both versions print identically formatted output. The main difference: Python's `print` adds a trailing newline automatically, but C's `printf` does not — so C format strings need an explicit `\n` wherever a newline is wanted. For each placeholder in the format string, `printf` expects one additional argument.
+Both versions print identically formatted output. Python's `print` adds a trailing newline automatically, C's `printf` does not. For each placeholder in the format string, `printf` expects one additional argument.
 
 **Formatting placeholders:**
 
@@ -246,7 +249,6 @@ Both versions print identically formatted output. The main difference: Python's 
 | `%u`        | unsigned decimal value                  |
 | `%e`        | float/double in scientific notation     |
 
-There is no placeholder for printing a value directly in binary.
 
 **`char` values — numeric vs. character:**
 
@@ -265,7 +267,7 @@ ch value is 65 which is the ASCII value of  A
 ch value is 99 which is the ASCII value of  c
 ```
 
-**`scanf`** reads values typed in by the user (from stdin) and stores them in program variables. It's picky about the exact format of the input — if your program seems to hang waiting on badly-formed input, `Ctrl-C` will terminate it. (Chapter 2 covers more robust ways to read input.)
+**`scanf`** reads values typed in by the user (from stdin) and stores them in program variables. 
 
 <details class="code-example" markdown="1">
 <summary>Show code: scanf example</summary>
@@ -307,6 +309,6 @@ int main(void) {
 
 </details>
 
-Note the `&` before each variable name in `scanf`: `scanf` needs the _address_ of the variable so it knows where in memory to store the value it reads, rather than the variable's current value. We'll come back to what `&` really means when we get to pointers.
+Note the `&` before each variable name in `scanf`: `scanf` takes the _address_ of the variable, which tells it where to store the incoming value. Simply using the _name_ of the variable (i.e. `num1`) would evaluate to the current value.
 
 For some practice, [try the Exercises from the book](https://diveintosystems.org/exercises/section-1_1.html)
