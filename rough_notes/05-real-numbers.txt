@@ -1,0 +1,53 @@
+4.8 Real Numbers in Binary
+
+Unlike integers which are countably infinite, real numbers are uncountably infinite.
+
+Real number encodings typically only store approximations of values that have been truncated to a predetermined number of bits.
+
+We present two methods: fixed point and floating point.
+
+4.8.1 Fixed-Point Representation
+
+Like a *decimal point*, we use a *binary* point to represent where the fractional portion of the number begins. In fixed point, this binary point never moves.
+
+The digits after the binary point represent powers of two raised to a negative value.
+
+INSERT figures/ch4/Fixed.png
+
+Applying the standard unsigned formula shows:
+
+(0 × 25)    +    (0 × 24)    +    (0 × 23)    +    (1 × 22)    +    (0 × 21)    +    (1 × 20)    +    (1 × 2-1)    +    (0 × 2-2)
+
+  =    0 + 0 + 0 + 4 + 0 + 1 + 0.5 + 0    =    5.5
+
+With two bits after the binary point, the fractional portion of a number holds one of four sequences: 00 (.00), 01 (.25), 10 (.50), or 11 (.75). Thus, two fractional bits allow a fixed-point number to represent fractional values that are precise to 0.25 (2^-2). Adding a third bit increases the precision to 0.125 (2-3), and so on with N bits after the binary point enabling 2-N precision.
+
+This encoding cannot precisely represent the result of dividing 0.75 by 2: the computation should produce 0.375, but storing it would require a third bit after the binary point (0b000000.011). Truncating the rightmost 1 enables the result to fit within the specified format, but it yields a rounded result of 0.75 / 2 = 0.25. In this example, the rounding is egregious due to the small number of bits involved, but even longer bit sequences will require truncation at some point.
+
+Even worse, rounding errors compound over the course of intermediate calculations, and in some cases the result of a sequence of computations might vary according to the order in which they’re performed
+
+(0.75 / 2) * 3    =    0.75
+
+(0.75 * 3) / 2    =    1.00
+
+Notice that in many of these calculations, a large number of the high-order bits are unused, but we still loose precision.
+
+4.8.2
+
+At the cost of some additional complexity, modern systems utilize a *floating-point representation*. The standard is IEEE 754
+
+INSERT figures/ch4/IEEE754.png
+
+The low-order 23 bits (digits d22 through d0) represent the significand (sometimes called the mantissa). As the largest region of bits, the significand serves as the foundation for the value, which ultimately gets altered by multiplying it according to the other bit regions. When interpreting the significand, its value implicitly follows a 1 and binary point. The fractional portion behaves like the fixed-point representation described in the previous section.
+
+For example, if the bits of the significand contain 0b110000…​0000, the first bit represents 0.5 (1 × 2-1), the second bit represents 0.25 (1 × 2-2), and all the remaining bits are zeros, so they don’t affect the value. Thus, the significand contributes 1.(0.5 + 0.25), or 1.75.
+
+The next eight bits (digits d30 through d23) represent the exponent, which scales the significand’s value to provide a wide representable range. The significand gets multiplied by 2exponent - 127, where the 127 is a bias that enables the float to represent both very large and very small values.
+
+The final high-order bit (digit d31) represents the sign bit, which encodes whether the value is positive (0) or negative (1).
+
+As an example, consider decoding the bit sequence 0b11000001101101000000000000000000. The significand portion is 01101000000000000000000, which represents 2-2 + 2-3 + 2-5 = 0.40625, so the signifcand region contributes 1.40625. The exponent is 10000011, which represents the decimal value 131, so the exponent contributes a factor of 2(131-127) (16). Finally, the sign bit is 1, so the sequence represents a negative value. Putting it all together, the bit sequence represents:
+
+1.40625 × 16 × -1  = -22.5
+
+While clearly more complex than the fixed-point scheme described earlier, the IEEE floating-point standard provides additional flexibility for representing a wide range of values. Despite the flexibility, a floating-point format with a constant number of bits still can’t precisely represent every possible value. That is, like fixed-point, rounding problems similarly affect floating-point encodings.

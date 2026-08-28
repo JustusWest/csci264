@@ -1,0 +1,63 @@
+4.3 Signed Binary Integers
+
+Signed number encodings use one bit to distinguish between the sets of negative numbers and non-negative numbers. By convention, the left-most bit indicates whether a number is negative (1) or non-negative (0). This leftmost bit is known as the high-order bit or the most significant bit.
+
+We present two potential signed binary encodings — signed magnitude and two’s complement. Even though only one of these encodings (two’s complement) is still used in practice, comparing them will help to illustrate their important characteristics.
+
+4.3.1 Signed magnitude
+
+Signed magnitude treats the high-order bit exclusively as a sign bit; it does not affect the absolute value of the number, only whether it is positive (0) or negative (1).
+
+This makes conversion and negation very simple
+- to convert, simply apply the standard unsigned method, ignoring the most significant bit, then check the most significant bit to set the sign
+- to negate the number, simple flip the most significant bit
+
+Signed magnitude has never been widely used in Computer Systems - we present it for pedagogical purposes. Assume we are using two's complement unless explicitly stated as signed magnitude
+
+At first glance, signed magnitude might seem attractive due to its simplicity. Unfortunately, it suffers from two major drawbacks that make it unappealing.
+
+1. It presents two values for zero (0) - 0000 and 1000
+
+2. Overflow (which we cover more later), for now just know that adding 1 to 0b1111 (-7) gives 0b0000 (0)
+
+INSERT figures/ch4/SignedMagnitude.png
+
+4.3.2
+Two’s complement encoding solves signed magnitude’s problems in an elegant way. Like signed magnitude, the high-order bit of a two’s complement number indicates whether or not the value should be interpreted as negative. In contrast though, the high-order bit also affects the value of the number.
+
+Computing a decimal value for an N-bit two’s complement number is similar to the familiar unsigned method, except the high-order bit’s contribution to the overall value is negated. That is, for an N-bit two’s complement sequence, instead of the first bit contributing dN-1 × 2N-1 to the sum, it contributes -dN-1 × 2N-1 (note the negative sign). Therefore, if the most significant bit is a 1, the overall value will be negative because that first bit contributes the largest absolute value to the sum. Otherwise, the first bit contributes nothing to the sum, and the result is non-negative. The full formula is:
+
+- (dN-1 × 2N-1)    +    (dN-2 × 2N-2)    +    …​    +    (d2 × 22)    +    (d1 × 21)    +    (d0 × 20)
+
+^ note the leading negative sign for just the first term!
+
+INSERT figures/ch4/TwosComplement.png
+
+This fixes the two zeros problem by encoding one additional negative number, but that doesn't cause any issues.
+
+The overflow problem is handled elegantly because a sequence of all 1's always represents -1. So adding 1 to 0b1111 (-1) rolls over to 0b0000 (0) as intended.
+
+Negation 
+
+Negating a twos complement is slightly trickier. To negate an N-bit value, we find it's _complement_ with respect to 2^N, that is to negate X find Y such that X+Y = 2^N.
+
+Thankfully there is a shortcut: flip all the bits and add 1.
+
+INSERT Board example of negating eight-bit value 13 from the book 4.3.2
+
+SKIP EVERYTHING IN THE BOOK AFTER THIS EXAMPLE
+
+4.4 Binary Integer Arithmetic
+4.4.1 addition
+INSERT simple example from book of addition without a carry out.
+BOARD EXAMPLE addition with a carry out, setting up for overflow
+
+4.4.2 subtraction
+subtraction can be reconstructed through addition and negation, which is conveinent because hardware already contains an adder and a negater. We don't need a new circuit for subtraction
+INSERT BOARD EXAMPLE 0b0111 - 0b0011
+
+SKIP MULTIPLICATION AND DIVISION
+
+4.5 Overflow
+
+INSERT QUICK SUMMARY OF OVERFLOW CHAPTER
