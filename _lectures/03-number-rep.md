@@ -246,7 +246,7 @@ To convert a decimal value `u` to base `b`:
 3. Repeat until `u` reaches 0.
 4. The digits come out **right to left** — the first remainder is the *last* digit of the answer.
 
-Not how integer division works in our favor in C:
+Note how integer division works in our favor in C:
 
 ```c
 r = u % b;   // remainder: the next digit
