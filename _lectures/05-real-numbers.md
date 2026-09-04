@@ -1,11 +1,11 @@
 ---
 title: "05 Real Numbers in Binary"
-published: false
+published: true
 ---
 
 [*Reading: Dive into Systems §4.8*](https://diveintosystems.org/book/C4-Binary/reals.html)
 
-Unlike integers, which are countably infinite, the real numbers are *uncountably* infinite. Between any two of them sit infinitely many more, so no finite encoding can name them all.
+Unlike integers, which are countably infinite, the real numbers are *uncountably* infinite. Between any two of them sit infinitely many more, so no finite encoding can't name them all.
 
 Real number encodings therefore store only **approximations** of values, truncated to a predetermined number of bits.
 
@@ -31,7 +31,7 @@ With two bits after the binary point, the fractional portion holds one of four s
 
 ### Rounding
 
-That fixed precision is also the limitation. This encoding cannot represent 0.75 / 2 = 0.375, which would need a third bit after the binary point (`0b000000.011`). Truncating that rightmost 1 makes the result fit, but turns the answer into 0.25. The rounding is egregious here because we have so few bits, but every fixed-width encoding hits this wall somewhere.
+Fixed precision is a limitation; this encoding cannot represent 0.75 / 2 = 0.375, which would need a third bit after the binary point (`0b000000.011`). Truncating that rightmost 1 makes the result fit, but turns the answer into 0.25. The rounding is egregious here because we have so few bits, but every fixed-width encoding hits this wall somewhere.
 
 Worse, rounding errors *compound* across intermediate calculations, so the result can depend on the order the operations are performed in:
 
@@ -99,24 +99,24 @@ Floating point is clearly more complex than fixed point, and it buys a much wide
 
 ## Converting Fractions Between Bases
 
-In Lecture 3 we converted *integers* between bases by **repeated division**: divide by the base, and the remainder is the next digit. Fractions extend the same idea, with two changes. We **multiply** by the base instead of dividing, and the digits come out **left to right** — most significant first — so no reversal is needed at the end.
+We used repeated division to convert integers between bases: divide by the base, and the remainder is the next digit. Fractions use the same idea, with two changes. We **multiply** by the base instead of dividing, and the digits come out **left to right**.
 
-Lab 2 has you write this two ways.
+In the next lab, we will do this with two different inputs:
 
 **Program 1** takes the fraction as a `double`. Each pass through the loop produces one digit:
 
 ```c
-u = u * b;   // shift one digit past the binary point
-r = u;       // truncating conversion to int extracts that digit
-u = u - r;   // drop the digit, keep the remaining fraction
+u = u * b;   
+r = u;       // truncating conversion to int extracts the digit
+u = u - r;   
 ```
 
 **Program 2** takes the fraction as a numerator and denominator, both `int`, and never touches floating point at all:
 
 ```c
-u = u * b;   // scale the numerator
+u = u * b;   
 r = u / q;   // integer division extracts the digit
-u = u % q;   // the modulo keeps the leftover fraction
+u = u % q;   
 ```
 
 In both cases each `r` is one digit of the answer, and you stop when you have as many digits as you were asked for.
@@ -158,7 +158,6 @@ Convert 11/16 to base 16, 1 digit. Here u = 11, q = 16, b = 16.
 11/16 = 0x0.B
 ```
 
-Two things to notice. The remainder 11 is above 9, so it has to be translated into the letter `B` — the same ASCII arithmetic you did in Lab 1, just applied to a different digit position. And this method never used a `double`, so nothing was ever approximated.
 
 </div>
 
@@ -182,7 +181,7 @@ Check: 0.5 + 0.25 = 0.75 ✓
 </div>
 
 <div class="board-example" markdown="1">
-<p class="board-title">Example 5 — 1/3 to base 2, and why we ask for a digit count</p>
+<p class="board-title">Example 5 — 1/3 to base 2</p>
 
 Convert 1/3 to base 2. u = 1, q = 3, b = 2.
 
@@ -201,14 +200,13 @@ The value of u is back to 1, which is where we started — the table has entered
 
 This is the same phenomenon as 1/3 = 0.333… in decimal. A fraction terminates in base b only when its denominator's prime factors all divide b. Three does not divide 2, so 1/3 has no finite binary expansion.
 
-This is exactly why the lab has you pass in a **number of digits**: the loop has no natural stopping point, so you have to supply one. And it is the same reason 0.1 and 0.2 are not stored exactly in a `float` or `double` — ten has a factor of 5, which does not divide 2.
+This is why the lab has you pass in a number of digits
 
 </div>
 
-One caution for the `double` version in Lab 2. When you enter 0.3, what actually gets stored is 0.29999999999999998890…, because of exactly what we saw in Example 5. The conversion still prints `300`, because the rounding in the multiplication happens to land back on 3.0 — but the value you typed and the value in memory were never the same number. The integer numerator/denominator version in Program 2 has no such gap, which is a large part of why the lab asks you to write it both ways.
 
 ## Looking Ahead
 
-Lab 2 is the second half of the base conversion work: the same algorithm, applied to fractions, in both of the forms above. Everything you need for it is in this lecture.
+Lab 2 is the second half of the base conversion work: the same algorithm, applied to fractions, in both of the forms above.
 
-That also closes out Chapter 4. Next time we leave data representation behind and start looking at how a C program is actually laid out in memory — program memory, scope, and pointers.
+That closes out Chapter 4. Next time we start looking at how a C program is laid out in memory, program memory, scope, and pointers.
