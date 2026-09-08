@@ -241,7 +241,8 @@ Both versions print identically formatted output. Python's `print` adds a traili
 | Placeholder | Meaning                                 |
 | ----------- | --------------------------------------- |
 | `%d`        | decimal value (`int`, `short`, `char`)  |
-| `%g`        | float or double value                   |
+| `%g`        | float.                                  |
+| `%lf`       | long float (`double`)                   |
 | `%s`        | string value                            |
 | `%c`        | char value — prints the ASCII character |
 | `%x`        | value in hexadecimal                    |
