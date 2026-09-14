@@ -5,3 +5,4 @@ demo/
 Gemfile.lock
 a.out
 *.s
+_private/
