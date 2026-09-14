@@ -6,18 +6,20 @@ permalink: /labs/
 
 Lab assignments and starter files, one page per lab. I will do my best to keep this consistent with Canvas, but you should default to what is on Canvas.
 
-{%- comment -%}
+{% comment %}
   Lists every labs/<something>/index.md. The `where: "name", "index.md"` step
-  is what keeps this page from listing itself.
-{%- endcomment -%}
+  is what keeps this page from listing itself. Do not add whitespace-trimming
+  dashes to the tags around the list: they pull the <ul> up onto the end of the
+  paragraph above, and kramdown then prints the tag instead of rendering it.
+{% endcomment %}
 
-{%- assign lab_pages = site.pages | where: "name", "index.md" | where_exp: "p", "p.dir contains '/labs/'" | sort: "order" -%}
+{% assign lab_pages = site.pages | where: "name", "index.md" | where_exp: "p", "p.dir contains '/labs/'" | sort: "order" %}
 
 <ul class="lab-index">
-{%- for lab in lab_pages %}
+{% for lab in lab_pages %}
   <li>
     <a href="{{ lab.url | relative_url }}">{{ lab.title }}</a>
-    {%- if lab.due %} <span class="lab-index-due">due {{ lab.due }}</span>{% endif %}
+    {% if lab.due %} <span class="lab-index-due">due {{ lab.due }}</span>{% endif %}
   </li>
-{%- endfor %}
+{% endfor %}
 </ul>
