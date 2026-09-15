@@ -1,0 +1,157 @@
+Arrays are used to create an ordered collection of data of the same type.
+
+Structs create a collection of data elements of different types.
+
+C is not object-oriented and thus does not support classes. Structs are the closest thing we have to represent heterogenous collections of data.
+
+Defining a struct:
+
+code example:
+
+struct studentT {
+    char name[64];
+    int age;
+    float gpa;
+    int grad_yr;
+};
+
+
+Declaring a struct variable:
+
+struct studentT student1, student2; 
+
+Assigning struct fields:
+code example:
+
+// The 'name' field is an array of characters, so we can use the 'strcpy'
+// string library function to fill in the array with a string value.
+strcpy(student1.name, "Kwame Salter");
+
+// The 'age' field is an integer.
+student1.age = 18 + 2;
+
+// The 'gpa' field is a float.
+student1.gpa = 3.5;
+
+// The 'grad_yr' field is an int
+student1.grad_yr = 2020;
+student2.grad_yr = student1.grad_yr;
+
+insert ch1/studentstruct.png
+
+C struct types are lvalues, meaning they can appear on the left side of an assignment statement. Thus, a struct variable can be assigned the value of another struct variable using a simple assignment statement. The field values of the struct on the right side of the assignment statement are copied to the field values of the struct on the left side of the assignment statement.
+
+student2 = student1;  // student2 gets the value of student1
+                      // (student1's field values are copied to
+                      //  corresponding field values of student2)
+
+strcpy(student2.name, "Frances Allen");  // change one field value
+
+
+Code Example - Using structs:
+
+#include <stdio.h>
+#include <string.h>
+
+/* define a new struct type (outside function bodies) */
+struct studentT {
+    char  name[64];
+    int   age;
+    float gpa;
+    int   grad_yr;
+};
+
+/* function prototypes */
+int checkID(struct studentT s1, int min_age);
+void changeName(char *old, char *new);
+
+int main(void) {
+    int can_vote;
+    // declare variables of struct type:
+    struct studentT student1, student2;
+
+    // access field values using .
+    strcpy(student1.name, "Ruth");
+    student1.age = 17;
+    student1.gpa = 3.5;
+    student1.grad_yr = 2030;
+
+    // structs are lvalues
+    student2 = student1;
+    strcpy(student2.name, "Frances");
+    student2.age = student1.age + 4;
+
+    // passing a struct
+    can_vote = checkID(student1, 18);
+    printf("%s %d\n", student1.name, can_vote);
+
+    can_vote = checkID(student2, 18);
+    printf("%s %d\n", student2.name, can_vote);
+
+    // passing a struct field value
+    changeName(student2.name, "Kwame");
+    printf("student 2's name is now %s\n", student2.name);
+
+    return 0;
+}
+
+int checkID(struct studentT s, int min_age) {
+    int ret = 1;
+
+    if (s.age < min_age) {
+        ret = 0;
+        // changes age field IN PARAMETER COPY ONLY
+        s.age = min_age + 1;
+    }
+    return ret;
+}
+
+void changeName(char *old, char *new) {
+    if ((old == NULL) || (new == NULL)) {
+        return;
+    }
+    strcpy(old,new);
+}
+
+Structs get passed to functions by value - checkID changes the age field but only in its local copy.
+
+changeName passes a char array, which is a pointer to the array so that function modifies the underlying struct
+
+Pointers and Structs:
+We can define a pointer to a struct like any other data type:
+
+code example:
+
+struct studentT s;
+struct studentT *sptr;
+
+// think very carefully about the type of each field when
+// accessing it (name is an array of char, age is an int ...)
+strcpy(s.name, "Freya");
+s.age = 18;
+s.gpa = 4.0;
+s.grad_yr = 2020;
+
+// malloc space for a struct studentT for sptr to point to:
+sptr = malloc(sizeof(struct studentT));
+if (sptr == NULL) {
+    printf("Error: malloc failed\n");
+    exit(1);
+}
+
+To access the fields of the struct from a pointer, we need to dereference it. This can be done in the classic way:
+
+// the grad_yr field of what sptr points to gets 2021:
+(*sptr).grad_yr = 2021;
+
+// the age field of what sptr points to gets s.age plus 1:
+(*sptr).age = s.age + 1;
+
+But because this is done very often, C provides a special operator that both dereferences a struct and accesses a field value: ->
+
+// the gpa field of what sptr points to gets 3.5:
+sptr->gpa = 3.5;
+
+// the name field of what sptr points to is a char *
+// (can use strcpy to init its value):
+strcpy(sptr->name, "Lars");

@@ -1,0 +1,126 @@
+No string type - statically declared strings are char arrays terminated with \0
+
+C provides the string.h library to help manipulate strings
+
+example code of string.h
+
+#include <stdio.h>
+#include <string.h>   // include the C string library
+
+int main(void) {
+    char str1[10];
+    char str2[10];
+
+    str1[0] = 'h';
+    str1[1] = 'i';
+    str1[2] = '\0';   // explicitly add null terminating character to end
+
+    // strcpy copies the bytes from the source parameter (str1) to the
+    // destination parameter (str2) and null terminates the copy.
+    strcpy(str2, str1);
+    str2[1] = 'o';
+    printf("%s %s\n", str1, str2);  // prints: hi ho
+
+    return 0;
+}
+
+
+Since strings are char arrays, they can be dynamically allocated. Remember to include space for the terminator
+
+static vs dynamic code example:
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int main(void) {
+    int size;
+    char str[64];         // statically allocated
+    char *new_str = NULL; // for dynamically allocated
+
+    strcpy(str, "Hello");
+    size = strlen(str);   // returns 5
+
+    new_str = malloc(sizeof(char) * (size+1)); // need space for '\0'
+    if(new_str == NULL) {
+        printf("Error: malloc failed!  exiting.\n");
+        exit(1);
+    }
+    strcpy(new_str, str);
+    printf("%s %s\n", str, new_str);    // prints "Hello Hello"
+
+    strcat(str, " There");  // concatenate " There" to the end of str
+    printf("%s\n", str);    // prints "Hello There"
+
+    free(new_str);  // free malloc'ed space when done
+    new_str = NULL;
+
+    return 0;
+}
+
+
+Many built in string functions like strcpy and strcat store their results by following a destination pointer (char *)
+
+The function assumes that the destination has adequate memory space - it is your job as the programmer to ensure this is true
+
+example of mistake:
+// Attempt to write a 12-byte string into a 5-character array.
+char mystr[5];
+strcpy(mystr, "hello world");
+
+// Attempt to write to a string with a NULL destination.
+char *mystr = NULL;
+strcpy(mystr, "try again");
+
+// Attempt to modify a read-only string literal.
+char *mystr = "string literal value";
+strcat(mystr, "string literals aren't writable");
+
+string.h functions:
+
+int strlen(char *) returns number of characters in the string
+
+char *strcpy(char *dst, char *src) copy the string from src to dst
+
+char *strncpy(char *dst, char *src, size_t size) copy to the size
+
+Show code example of direct string comparison not working - then print those variables to show why (they are memory addresses)
+
+if(d_str == str){
+    print('equal')
+}
+
+
+strcmp
+
+int strcmp(char *s1, char* s2)
+
+fix previous code example with strcmp
+
+show strncmp example of comparing to see if two strings start with the same values
+
+
+Compares ASCII values so alphabetical order is case sensitive:
+
+strcpy(str, "alligator");
+strcpy(d_str, "Zebra");
+
+ret =  strcmp(str,d_str);
+if (ret == 0) {
+    printf("%s is equal to %s\n", str, d_str);
+} else if (ret < 0) {
+    printf("%s is less than %s\n", str, d_str);
+} else {
+    printf("%s is greater than %s\n", str, d_str);  // true for these strings
+}
+
+ret = strncmp(str, "all", 3);  // returns 0: they are equal up to first 3 chars
+
+
+char *strcat(char *dst, char *src) - concatenate strings (you are responsible for destination size)
+
+
+char *strstr(const char *string, const char *substr); - find substrings in the string
+
+
+
