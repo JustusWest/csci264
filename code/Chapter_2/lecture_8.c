@@ -31,6 +31,8 @@ int main(void){
 	printf("[main]    &arr[0]    = %p\n", &arr[0]);
 	printf("[main]    &arr[1]    = %p\n", &arr[1]);
 
+	free(arr);
+	arr = NULL;
 
 
 	return 0;
