@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void min_max(int *arr, int size, int *min, int *max);
+
+
 int main(void){
-	int n;
+	int n, min, max;
 	int *arr = NULL;	
 
 	printf("How many values? ");
@@ -25,6 +28,8 @@ int main(void){
 	}
 	printf("\n");
 
+	min_max(arr, n, &min, &max);
+
 	printf("[main]    arr    = %p\n", arr);
 	printf("[main]    &arr    = %p\n", &arr);
 
@@ -36,4 +41,15 @@ int main(void){
 
 
 	return 0;
+}
+
+void min_max(int *arr, int size, int *min, int *max){
+	*min = 0;
+	*max = 0;
+
+	for(int i = 0; i < size; i++){
+		if(arr[i] < arr[*min]){
+			*min = i;
+		}
+	}
 }
