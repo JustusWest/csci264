@@ -212,6 +212,135 @@ strcpy(sptr->name, "Lars");
 
 `sptr->gpa` and `(*sptr).gpa` mean exactly the same thing. Use the arrow.
 
+## An Array of Structs
+
+One `struct studentT` variable holds one student. A roster holds many, and the number of students is not known until the program runs — so it goes on the heap, the same way any other array of unknown size does.
+
+`struct studentT` is a type like any other, so `sizeof` works on it and `malloc` has everything it needs:
+
+```c
+int n = 5;
+struct studentT *roster = NULL;
+
+roster = malloc(sizeof(struct studentT) * n);
+if (roster == NULL) {
+    printf("Error - malloc failed\n");
+    exit(1);
+}
+```
+
+Compare this to `malloc(sizeof(int) * n)` from Monday. The only thing that changed is the type inside `sizeof`. `malloc` returns one contiguous block big enough for five whole structs, and `roster` holds its base address.
+
+<div class="board-example" markdown="1">
+<p class="board-title">Example 1 — two spellings, one struct</p>
+
+`roster` holds the address of the first struct, so indexing works exactly as it does for an array of `int`:
+
+| Expression | Type | Field access |
+|---|---|---|
+| `roster[i]` | `struct studentT` — a whole struct | `roster[i].age` |
+| `&roster[i]` | `struct studentT *` — a pointer to one | `ptr->age` |
+
+`roster[2].age` and `(&roster[2])->age` name the same `int` at the same address. Which one you write depends on what you are holding: in `main` you have the array, so you use `.`; in a function that was handed one student, you have a pointer, so you use `->`.
+
+</div>
+
+### Initializing One Student
+
+Write the function that fills in a single student first, and `main` becomes a list of calls to it. It takes a **pointer** to a struct that already exists — it does not allocate anything and it does not return anything.
+
+```c
+#define NAME_LEN 64   /* so the array size has a name we can reuse */
+
+void init_student(struct studentT *s, char *name, int age, float gpa, int grad_yr) {
+    strncpy(s->name, name, NAME_LEN);
+    s->name[NAME_LEN - 1] = '\0';   /* strncpy did not do this for us */
+
+    s->age = age;
+    s->gpa = gpa;
+    s->grad_yr = grad_yr;
+}
+```
+
+Every field is reached with `->`, but they are not all assigned the same way. `age`, `gpa`, and `grad_yr` are numbers, so a plain `=` copies the value. `name` is an *array* of `char` sitting inside the struct, and you cannot assign to an array — it takes a string copy. The type of the field decides the rules, not the fact that it is a field.
+
+The terminator line is not decoration. If someone passes a name 64 characters or longer, `strncpy` fills all 64 bytes and stops with no room left for `'\0'`, exactly as on Wednesday. Every `printf("%s", s->name)` after that would run off the end of the field — and the next thing in memory is `age`.
+
+<details class="code-example" markdown="1">
+<summary>Show code: the whole roster program</summary>
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define NAME_LEN 64
+
+struct studentT {
+    char name[NAME_LEN];
+    int age;
+    float gpa;
+    int grad_yr;
+};
+
+void init_student(struct studentT *s, char *name, int age, float gpa, int grad_yr);
+void print_student(struct studentT *s);
+
+int main(void) {
+    int n = 5;
+    struct studentT *roster = NULL;
+
+    roster = malloc(sizeof(struct studentT) * n);
+    if (roster == NULL) {
+        printf("Error - malloc failed\n");
+        exit(1);
+    }
+
+    init_student(&roster[0], "Kwame Salter",    20, 3.5, 2028);
+    init_student(&roster[1], "Frances Allen",   19, 3.9, 2029);
+    init_student(&roster[2], "Ruth Teitelbaum", 21, 3.2, 2027);
+    init_student(&roster[3], "Lars Bak",        20, 2.8, 2028);
+    init_student(&roster[4], "Freya Hansen",    18, 4.0, 2030);
+
+    for (int i = 0; i < n; i++) {
+        print_student(&roster[i]);
+    }
+
+    free(roster);
+    roster = NULL;
+
+    return 0;
+}
+
+void init_student(struct studentT *s, char *name, int age, float gpa, int grad_yr) {
+    strncpy(s->name, name, NAME_LEN);
+    s->name[NAME_LEN - 1] = '\0';   /* strncpy did not do this for us */
+
+    s->age = age;
+    s->gpa = gpa;
+    s->grad_yr = grad_yr;
+}
+
+void print_student(struct studentT *s) {
+    printf("%-16s age %d  gpa %.1f  class of %d\n",
+        s->name, s->age, s->gpa, s->grad_yr);
+}
+```
+
+```text
+Kwame Salter     age 20  gpa 3.5  class of 2028
+Frances Allen    age 19  gpa 3.9  class of 2029
+Ruth Teitelbaum  age 21  gpa 3.2  class of 2027
+Lars Bak         age 20  gpa 2.8  class of 2028
+Freya Hansen     age 18  gpa 4.0  class of 2030
+```
+
+</details>
+
+One `malloc` and one `free` for the whole roster. The five structs are not five allocations — they are five neighborhoods inside a single block, which is why `roster[3]` can be found by arithmetic instead of by bookkeeping.
+
+The file is [`lecture_10.c`]({{ "/code/Chapter_2/lecture_10.c" | relative_url }}). Bring it to lab on Tuesday: **Lab 4** picks this program up and adds two functions to it — one that searches the roster for a student by name, and one that reports where each field actually sits inside a struct. The second is worth doing now because those offsets come back in November: when we read the assembly the compiler writes for `s->age`, the number 64 is going to be sitting in the instruction.
+
 ## Looking Ahead
 
 For some practice, try the Exercises from the book for [§1.6](https://diveintosystems.org/exercises/section-1_6.html) and [§2.7](https://diveintosystems.org/exercises/section-2_7.html).
