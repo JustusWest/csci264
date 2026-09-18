@@ -78,89 +78,11 @@ strcpy(student2.name, "Frances Allen");  // change one field value
 
 This is a copy not a shared reference. After the assignment, changing `student2.name` leaves `student1.name` alone.
 
-## Structs and Functions
+## Structs, Functions and Pointers
 
-<details class="code-example" markdown="1">
-<summary>Show code: a full program using structs</summary>
+**Structs are passed to functions by value**, like everything else in C. The parameter `s` is a full copy of the argument. 
 
-```c
-#include <stdio.h>
-#include <string.h>
-
-/* define a new struct type (outside function bodies) */
-struct studentT {
-    char  name[64];
-    int   age;
-    float gpa;
-    int   grad_yr;
-};
-
-/* function prototypes */
-int checkID(struct studentT s1, int min_age);
-void changeName(char *old, char *new);
-
-int main(void) {
-    int can_vote;
-    // declare variables of struct type:
-    struct studentT student1, student2;
-
-    // access field values using .
-    strcpy(student1.name, "Ruth");
-    student1.age = 17;
-    student1.gpa = 3.5;
-    student1.grad_yr = 2030;
-
-    // structs are lvalues
-    student2 = student1;
-    strcpy(student2.name, "Frances");
-    student2.age = student1.age + 4;
-
-    // passing a struct
-    can_vote = checkID(student1, 18);
-    printf("%s %d\n", student1.name, can_vote);
-
-    can_vote = checkID(student2, 18);
-    printf("%s %d\n", student2.name, can_vote);
-
-    // passing a struct field value
-    changeName(student2.name, "Kwame");
-    printf("student 2's name is now %s\n", student2.name);
-
-    return 0;
-}
-
-int checkID(struct studentT s, int min_age) {
-    int ret = 1;
-
-    if (s.age < min_age) {
-        ret = 0;
-        // changes age field IN PARAMETER COPY ONLY
-        s.age = min_age + 1;
-    }
-    return ret;
-}
-
-void changeName(char *old, char *new) {
-    if ((old == NULL) || (new == NULL)) {
-        return;
-    }
-    strcpy(old,new);
-}
-```
-
-</details>
-
-```text
-Ruth 0
-Frances 1
-student 2's name is now Kwame
-```
-
-**Structs are passed to functions by value**, like everything else in C. The parameter `s` is a full copy of the argument. `checkID` assigns to `s.age`, and that change affects the copy in `checkID`'s stack frame only.
-
-**`changeName` behaves differently because of the type of the field.** `student2.name` is an array of `char`, so passing it passes the array's base address. The parameter `old` and the field in `main`'s struct refer to the same memory, so the `strcpy` inside the function changes the caller's struct.
-
-## Pointers to Structs
+If we want to modify a struct in a function, we pass a pointer to the struct.
 
 A pointer to a struct is declared like a pointer to anything else, and the struct it points to can live on the stack or the heap.
 
@@ -214,9 +136,9 @@ strcpy(sptr->name, "Lars");
 
 ## An Array of Structs
 
-One `struct studentT` variable holds one student. A roster holds many, and the number of students is not known until the program runs — so it goes on the heap, the same way any other array of unknown size does.
+One `struct studentT` variable holds one student. If we want to create a class roster, we need to store many students; we will do this with an array of structs. The total number isn't known until runtime so it goes on the heap, the same way any other array of unknown size does.
 
-`struct studentT` is a type like any other, so `sizeof` works on it and `malloc` has everything it needs:
+`struct studentT` is a type like any other, so we can use `sizeof` to `malloc` it:
 
 ```c
 int n = 5;
@@ -232,16 +154,16 @@ if (roster == NULL) {
 Compare this to `malloc(sizeof(int) * n)` from Monday. The only thing that changed is the type inside `sizeof`. `malloc` returns one contiguous block big enough for five whole structs, and `roster` holds its base address.
 
 <div class="board-example" markdown="1">
-<p class="board-title">Example 1 — two spellings, one struct</p>
+<p class="board-title">Example 1 — Two ways to access a field</p>
 
-`roster` holds the address of the first struct, so indexing works exactly as it does for an array of `int`:
+`roster` holds the address of the first struct, so indexing works the same as any array:
 
 | Expression | Type | Field access |
 |---|---|---|
 | `roster[i]` | `struct studentT` — a whole struct | `roster[i].age` |
-| `&roster[i]` | `struct studentT *` — a pointer to one | `ptr->age` |
+| `&roster[i]` | `struct studentT *` — a pointer to a struct | `ptr->age` |
 
-`roster[2].age` and `(&roster[2])->age` name the same `int` at the same address. Which one you write depends on what you are holding: in `main` you have the array, so you use `.`; in a function that was handed one student, you have a pointer, so you use `->`.
+`roster[2].age` and `(&roster[2])->age` name the same `int` at the same address. Which one we use depends on what we have: in `main` you have the array, so you use `.`; in a function that was handed one student, you have a pointer, so you use `->`.
 
 </div>
 
@@ -262,12 +184,10 @@ void init_student(struct studentT *s, char *name, int age, float gpa, int grad_y
 }
 ```
 
-Every field is reached with `->`, but they are not all assigned the same way. `age`, `gpa`, and `grad_yr` are numbers, so a plain `=` copies the value. `name` is an *array* of `char` sitting inside the struct, and you cannot assign to an array — it takes a string copy. The type of the field decides the rules, not the fact that it is a field.
-
-The terminator line is not decoration. If someone passes a name 64 characters or longer, `strncpy` fills all 64 bytes and stops with no room left for `'\0'`, exactly as on Wednesday. Every `printf("%s", s->name)` after that would run off the end of the field — and the next thing in memory is `age`.
+Every field is reached with `->`, but they are not all assigned the same way. `age`, `gpa`, and `grad_yr` are numbers, so a plain `=` copies the value. `name` is an *array* of `char`, so we have to use `strcpy`. In this case we use `strncpy` to enforce a max size. We include the `'\0'` incase someone passes a name 64 characters or longer, where `strncpy` woulld fill all 64 bytes and stops with no room left for `'\0'`
 
 <details class="code-example" markdown="1">
-<summary>Show code: the whole roster program</summary>
+<summary>Show code: init Roster</summary>
 
 ```c
 #include <stdio.h>
@@ -296,11 +216,11 @@ int main(void) {
         exit(1);
     }
 
-    init_student(&roster[0], "Kwame Salter",    20, 3.5, 2028);
-    init_student(&roster[1], "Frances Allen",   19, 3.9, 2029);
-    init_student(&roster[2], "Ruth Teitelbaum", 21, 3.2, 2027);
-    init_student(&roster[3], "Lars Bak",        20, 2.8, 2028);
-    init_student(&roster[4], "Freya Hansen",    18, 4.0, 2030);
+    init_student(&roster[0], "Falilou",    20, 3.5, 2028);
+    init_student(&roster[1], "Jamiya",   19, 3.9, 2029);
+    init_student(&roster[2], "Nick", 21, 3.2, 2027);
+    init_student(&roster[3], "Winnie",        20, 2.8, 2028);
+    init_student(&roster[4], "Juan",    18, 4.0, 2030);
 
     for (int i = 0; i < n; i++) {
         print_student(&roster[i]);
@@ -322,24 +242,24 @@ void init_student(struct studentT *s, char *name, int age, float gpa, int grad_y
 }
 
 void print_student(struct studentT *s) {
-    printf("%-16s age %d  gpa %.1f  class of %d\n",
+    printf("%s age %d  gpa %.1f  class of %d\n",
         s->name, s->age, s->gpa, s->grad_yr);
 }
 ```
 
 ```text
-Kwame Salter     age 20  gpa 3.5  class of 2028
-Frances Allen    age 19  gpa 3.9  class of 2029
-Ruth Teitelbaum  age 21  gpa 3.2  class of 2027
-Lars Bak         age 20  gpa 2.8  class of 2028
-Freya Hansen     age 18  gpa 4.0  class of 2030
+Falilou    age 20  gpa 3.5  class of 2028
+Jamiya    age 19  gpa 3.9  class of 2029
+Nick  age 21  gpa 3.2  class of 2027
+Winnie         age 20  gpa 2.8  class of 2028
+Juan     age 18  gpa 4.0  class of 2030
 ```
 
 </details>
 
-One `malloc` and one `free` for the whole roster. The five structs are not five allocations — they are five neighborhoods inside a single block, which is why `roster[3]` can be found by arithmetic instead of by bookkeeping.
+One `malloc` allocates a block for the whole roster, so one `free` clears it.
 
-The file is [`lecture_10.c`]({{ "/code/Chapter_2/lecture_10.c" | relative_url }}). Bring it to lab on Tuesday: **Lab 4** picks this program up and adds two functions to it — one that searches the roster for a student by name, and one that reports where each field actually sits inside a struct. The second is worth doing now because those offsets come back in November: when we read the assembly the compiler writes for `s->age`, the number 64 is going to be sitting in the instruction.
+This will be a good starting point for Lab 4.
 
 ## Looking Ahead
 
