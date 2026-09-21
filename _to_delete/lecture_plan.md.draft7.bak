@@ -1,11 +1,11 @@
-# CSCI 264 — Lecture Plan, Weeks 1–7 (draft 8)
+# CSCI 264 — Lecture Plan, Weeks 1–7 (draft 7)
 
 **Text:** *Dive into Systems* v1.2 (Matthews, Newhall, Webb)
 **Meetings:** Lecture MWF; Lab Tue (Sec A 12:30, Sec B 3:30)
 
-**Changes from draft 7.** One change, confined to Weeks 5–6. **Mon 9/21 becomes a history-and-discussion day on §5.1 alone**, and §5.2 (the von Neumann architecture) moves to Wed 9/23. Every remaining Ch 5 lecture cascades one period later, and the last two are merged: **Fri 10/2 now carries §5.6–5.9**. Nothing outside Ch 5 moves.
+**Changes from draft 6.** Three changes, all in Weeks 4–6. (1) Week 4 is corrected to what was actually delivered: Mon 9/14 was §2.5 (arrays), not the C-data-in-memory lecture draft 6 assigned it, so structs, pointers to structs, and pointer arithmetic move to Fri 9/18. (2) §2.9.5–2.9.6 and App. 2 §17.5 (libraries, linking, `make`) move out of Week 4 and into Wed 10/7, where the compilation pipeline is already the topic. (3) Lab 4 and Lab 5 swap content: Lab 4 becomes a strings-and-structs C lab carrying A4, and the circuit simulator moves to Lab 5, where three architecture lectures precede it instead of one.
 
-**No dates move and nothing is cut.** All lab dates are unchanged, Midterm 1 stays Tue Oct 6, Ch 5 still finishes on Fri 10/2, and the assignment count stays at eight. The cost is paid entirely inside Fri 10/2, which is now overloaded on purpose — see the note under Week 6.
+**No lecture dates move.** Weeks 1–3 are unchanged, all lab dates are unchanged, and Midterm 1 stays Tue Oct 6. The assignment count stays at eight: A4 changes topic rather than disappearing.
 
 ---
 
@@ -70,33 +70,27 @@ Lab 2's prerequisite chain is §4.1 → §4.2 → §4.8.1, all of which now land
 
 | Day | Sections | Content |
 |---|---|---|
-| **Mon 9/21** | §5.1 | **Origins of modern computing — lecture and discussion.** ~25 min narrative, ~20 min discussion. No §5.2 content |
+| **Mon 9/21** | §5.1, §5.2 | Origins of modern computing; the von Neumann architecture |
 | **Tue 9/22** | — | **Lab 4 — strings and structs in C. A3 due; A4 out** |
-| **Wed 9/23** | §5.2 | The von Neumann architecture: the five units, the buses, and the fetch-decode-execute-store cycle |
-| **Fri 9/25** | §5.3, §4.6.1–4.6.4 | Logic gates. **Bitwise AND/OR/XOR/NOT folded in here** — same truth tables, as the software face of the gates |
+| **Wed 9/23** | §5.3, §4.6.1–4.6.4 | Logic gates. **Bitwise AND/OR/XOR/NOT folded in here** — same truth tables, as the software face of the gates |
+| **Fri 9/25** | §5.4 | Arithmetic, control, and storage circuits. The ripple-carry adder is Wed 9/2's §4.4 in gates |
 
-**Mon 9/21 is a history-and-discussion day.** §5.1 is lectured as a narrative for roughly 25 minutes and the rest of the period is student discussion. Three threads run through the narrative and are the discussion's pickup points: the role of women in early computing and the ways their contributions were under-attributed; the extent to which early computing was funded and driven by the military; and von Neumann himself, whose *First Draft of a Report on the EDVAC* is where all three threads meet. §5.2 is not touched — the lecture ends on the stored-program *idea*, and Wednesday opens the box.
+**Lab 4 is now a C lab and A4 is a C assignment.** Draft 6 put the circuit simulator here with only §5.1–5.2 behind it — von Neumann's five components and no gates. Worse, A4 was *build an adder/ALU*, and the ALU material (§5.4) does not arrive until Fri 9/25, three days after the assignment went out. Moving the circuit work to Lab 5 fixes both halves of that.
 
-This is the one Monday in the architecture block where a discussion day costs nothing downstream. The usual rhythm is concept Monday → lab Tuesday, but Lab 4 is a strings-and-structs C lab whose starter code was built in the Fri 9/18 lecture. Tuesday does not depend on Monday this week.
-
-**Lab 4 is a C lab and A4 is a C assignment.** Draft 6 put the circuit simulator here with only §5.1–5.2 behind it — von Neumann's five components and no gates. Worse, A4 was *build an adder/ALU*, and the ALU material (§5.4) does not arrive until Week 6, after the assignment would have gone out. Moving the circuit work to Lab 5 fixes both halves of that.
-
-Making A4 a strings-and-structs assignment also buys back some of what Ch 2's compression cost. Ch 2 is on Midterm 1 and is the foundation for §7.7–7.10, and until now the only graded C work has been A3. A4 goes out Tue 9/22 with the strings lecture (Wed 9/16) and the structs lecture (Fri 9/18) behind it, and is due Tue 9/29 — graded and returned before the Oct 6 exam.
+Making A4 a strings-and-structs assignment also buys back some of what Ch 2's compression cost. Ch 2 is on Midterm 1 and is the foundation for §7.7–7.10, and until now the only graded C work has been A3. A4 goes out Tue 9/22 with Wed's strings lecture and Fri's structs lecture behind it, and is due Tue 9/29 — graded and returned before the Oct 6 exam.
 
 ## Week 6 · Sep 28–Oct 2 — finishing architecture
 
 | Day | Sections | Content |
 |---|---|---|
-| **Mon 9/28** | §5.4 | Arithmetic, control, and storage circuits. The ripple-carry adder is Wed 9/2's §4.4 in gates |
+| **Mon 9/28** | §5.5 | Building a processor: putting it all together |
 | **Tue 9/29** | — | **Lab 5 — circuit simulator, in-lab only. A4 due** |
-| **Wed 9/30** | §5.5 | Building a processor: putting it all together |
-| **Fri 10/2** | §5.6–5.9 | The processor's execution of program instructions; pipelining; hazards; CPUs today |
+| **Wed 9/30** | §5.6 | The processor's execution of program instructions |
+| **Fri 10/2** | §5.7–5.9 | Pipelining; hazards; CPUs today |
 
-**Fri 10/2 carries four sections and will not fit in one period.** That is accepted rather than solved: it is the last lecture before the Midterm 1 review, it is the cheapest place in the course to lose material, and the decision about what to drop is better made in the room than here. For when that moment arrives, in rough order of what is worth protecting: §5.6 (execution on the real datapath) is the section the rest of the course actually uses and should be lectured in full; §5.7 (pipelining) is the idea students will meet again everywhere and deserves a real, if quick, treatment; §5.8 (hazards) can be a sketch of the problem with one example rather than a taxonomy; §5.9 (CPUs today) is the cheapest thing to make a read-on-your-own slide and costs nothing on the exam.
+**Lab 5 is scoped to finish inside the period and carries no take-home assignment.** Build a half adder and a full adder from gates in the simulator, chain them into a small ripple-carry adder, and trace a few input patterns through it; submit the saved circuit and the trace before leaving. §5.3 (gates), §5.4 (adders and the ALU), and §5.5 (the processor) are all behind it, so nothing in the lab is new material — it is the hands-on pass over three lectures' worth of circuits.
 
-**Lab 5 now has two lectures behind it, not three.** §5.3 (Fri 9/25) and §5.4 (Mon 9/28) both precede it, and those are the two sections the lab actually exercises — half adder, full adder, a short ripple-carry chain, and a trace. What it loses is §5.5, which now falls on Wed 9/30, the day *after*. Nothing in the adder work depends on having seen the whole processor first, so the lab still runs as written; what no longer works is the datapath-tracing step draft 7 folded into the trace. Drop that step and let §5.6 on Fri 10/2 do the datapath tracing in lecture, or move it into the Midterm 1 review on Mon 10/5.
-
-Lab 5 is still scoped to finish inside the period and still carries no take-home. This is the last lab before Midterm 1, and the point of keeping it in-lab is that no student leaves the week of Sep 29 with unfinished coursework hanging over the exam run-up; whatever time they have at home goes to studying.
+This is the last lab before Midterm 1. The point of keeping it in-lab is that no student leaves the week of Sep 29 with unfinished coursework hanging over the exam run-up; whatever time they have at home goes to studying. The datapath tracing that draft 6 had scheduled here is folded into the same session as the trace step, and §5.6 on Wed 9/30 covers it again in lecture.
 
 ## Week 7 · Oct 5–9 — the pivot
 

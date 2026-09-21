@@ -1,0 +1,217 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{default}
+\usefonttheme{professionalfonts}
+
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\setbeamertemplate{navigation symbols}{}
+\definecolor{ink}{HTML}{1F2937}
+\definecolor{accent}{HTML}{9A3412}
+\definecolor{muted}{HTML}{6B7280}
+\setbeamercolor{frametitle}{fg=ink}
+\setbeamercolor{title}{fg=ink}
+\setbeamercolor{normal text}{fg=ink}
+\setbeamercolor{itemize item}{fg=accent}
+\setbeamercolor{itemize subitem}{fg=muted}
+\setbeamerfont{frametitle}{size=\LARGE,series=\bfseries}
+\setbeamerfont{title}{size=\Huge,series=\bfseries}
+\setbeamerfont{subtitle}{size=\Large}
+\setbeamercolor{subtitle}{fg=accent}
+\setbeamertemplate{itemize item}{\textbullet}
+\setbeamertemplate{itemize subitem}{--}
+\setbeamertemplate{footline}{\hfill\color{muted}\scriptsize\insertframenumber\hspace{1.2em}\vspace{0.6em}}
+\newcommand{\thread}[1]{{\color{accent}\bfseries #1}}
+\newcommand{\credit}[1]{\par\vspace{0.3em}{\color{muted}\tiny #1}}
+% \imgslide{title}{image}{image width fraction}{bullets}{credit}
+\newcommand{\imgslide}[5]{\begin{frame}{#1}\begin{columns}[c]\begin{column}{#3\textwidth}\centering\includegraphics[width=\linewidth,height=0.78\textheight,keepaspectratio]{#2}\credit{#5}\end{column}\begin{column}{\dimexpr0.96\textwidth-#3\textwidth\relax}\large #4\end{column}\end{columns}\end{frame}}
+
+\title{The Origins of Modern Computing}
+\subtitle{CSCI 264 \textbullet{} Lecture 11 \textbullet{} Dive into Systems \S5.1}
+\date{Monday, September 21, 2026}
+\author{}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{Listen for three threads}
+\Large
+\begin{itemize}\setlength\itemsep{1.2em}
+\item \thread{Women in early computing} --- who did the work, and who got the credit
+\item \thread{The military} --- who paid for the machines, and why
+\item \thread{John von Neumann} --- and the document that put his name on an architecture
+\end{itemize}
+\end{frame}
+
+\begin{frame}{A timeline}
+\Large
+\centering
+\begin{tabular}{r@{\hspace{1.5em}}l}
+\toprule
+1837 & Babbage \& Lovelace: the Analytical Engine \\
+1937 & Shannon's thesis; Turing's machine \\
+1943 & Colossus at Bletchley Park \\
+1944 & Harvard Mark I \\
+1945 & ENIAC completed; the \emph{First Draft} circulated \\
+1946 & ENIAC unveiled; Turing's ACE report \\
+\bottomrule
+\end{tabular}
+\end{frame}
+
+\begin{frame}{``Computer'' was a job title}
+\Large
+\begin{itemize}\setlength\itemsep{1em}
+\item 1700s--early 1900s: a \emph{computer} was \emph{one who computes}
+\item A person doing calculations by hand, usually one of a large team
+\item Most often a woman
+\item Every machine today was built to replace a room full of these people
+\end{itemize}
+\end{frame}
+
+\imgslide{Babbage and Lovelace}{figures/ada-lovelace.jpg}{0.34}{\begin{itemize}\setlength\itemsep{0.9em}\item The \textbf{Analytical Engine}: a mechanical, general-purpose design\item Ada Lovelace published the first algorithm meant for a machine\item ``First computer'' is \emph{retrospective}\item Later designers mostly didn't know their work\end{itemize}}{Ada Lovelace, watercolour by A.\,E.\ Chalon. Wikimedia Commons.}
+
+\imgslide{A primordial soup of ideas}{figures/alan-turing.jpg}{0.32}{\begin{itemize}\setlength\itemsep{0.9em}\item \textbf{1937, Claude Shannon}: Boolean logic can be built from switches\item[] \quad $\to$ the basis of all digital circuits\item \textbf{1937, Alan Turing}: the Turing machine\item[] \quad $\to$ what a computer can and cannot do\item Neither of them built a machine\end{itemize}}{Alan Turing. Wikimedia Commons.}
+
+\imgslide{Colossus and the Wrens}{figures/colossus-wrens.jpg}{0.55}{\begin{itemize}\setlength\itemsep{0.8em}\item 1943, Tommy Flowers, Bletchley Park\item Arguably the first programmable, digital, fully electronic computer\item Operated by the \thread{Wrens}\item Noted for cryptographic ability \ldots\item \ldots\ never made cryptographers\end{itemize}}{Colossus at Bletchley Park, 1943. Wikimedia Commons.}
+
+\begin{frame}{Meanwhile, in the United States}
+\Large
+\begin{itemize}\setlength\itemsep{1em}
+\item \textbf{Harvard Mark I} --- Howard Aiken, a U.S.\ Navy Reserve commander
+\item \textbf{ENIAC} --- Eckert and Mauchly, University of Pennsylvania, 1945
+\begin{itemize}\large
+\item Digital, fully electronic, programmable, general purpose
+\item Decimal, not binary
+\end{itemize}
+\item Built for \thread{U.S.\ Army Ordnance}
+\item Purpose: \textbf{artillery firing tables}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The people ENIAC was built to replace}
+\Large
+\begin{itemize}\setlength\itemsep{1em}
+\item $\approx$\,200 women computing trajectories by hand at Penn
+\item Slide rules, desk calculators, a differential analyzer
+\item One trajectory: 20 minutes to several days
+\item Kay McNulty's appointment: \textbf{``subprofessional''} grade
+\end{itemize}
+\credit{J.\,S.\ Light, ``When Computers Were Women,'' \emph{Technology and Culture} 40:3 (1999).}
+\end{frame}
+
+\begin{frame}{The first programmers}
+\Large
+\begin{itemize}\setlength\itemsep{1.2em}
+\item The human computers became the first programmers
+\item Because programming was considered \textbf{clerical}
+\item The machine was the achievement; instructing it was typing
+\end{itemize}
+\end{frame}
+
+\imgslide{Grace Hopper}{figures/grace-hopper.jpg}{0.44}{\begin{itemize}\setlength\itemsep{0.8em}\item Programmer on the Mark I; wrote its manual\item First compiler: \textbf{A-0}\item \textbf{FLOW-MATIC} $\to$ COBOL\item A commissioned officer in the \thread{U.S.\ Naval Reserve}\end{itemize}}{Cropper, Krishnan, Hopper, Rothberg at a UNIVAC I console, 1957. Computer History Museum 102741216.}
+
+\imgslide{The ``first bug''}{figures/first-computer-bug-1947.jpg}{0.52}{\begin{itemize}\setlength\itemsep{0.9em}\item Harvard Mark II log, 1947\item A moth, taped in\item Not the first use of ``bug''\item Probably not written by Hopper\end{itemize}}{Harvard Mark II logbook, 1947. Wikimedia Commons.}
+
+\imgslide{The ENIAC Six}{figures/eniac-programmers.jpg}{0.55}{\normalsize Jean Jennings Bartik\\Betty Snyder Holberton\\Kay McNulty\\Frances Bilas Spence\\Marlyn Wescoff Meltzer\\Ruth Lichterman Teitelbaum\par\vspace{0.8em}\begin{itemize}\item Given wiring diagrams, not a manual\item Invented flow charts, subroutines, nesting\end{itemize}}{ENIAC at the Moore School. U.S.\ Army photo, Wikimedia Commons.}
+
+\begin{frame}{The credit did not follow}
+\Large
+\begin{itemize}\setlength\itemsep{1em}
+\item February 15, 1946: ENIAC unveiled, running Jennings and Snyder's program
+\item Congratulations went to Eckert and Mauchly
+\item \emph{New York Times}: the work of ``100 trained men''
+\item Photo captions: ``setting switches,'' ``plugging cables''
+\item Reused as an Army recruiting ad --- with the women cropped out
+\end{itemize}
+\end{frame}
+
+\begin{frame}{ENIAC's first real job}
+\Huge
+\centering
+\vfill
+Not a firing table.\\[0.8em]
+\Large A feasibility calculation for a \thread{thermonuclear weapon}.
+\vfill
+\end{frame}
+
+\imgslide{John von Neumann}{figures/von-neumann.jpg}{0.30}{\begin{itemize}\setlength\itemsep{0.9em}\item Budapest, 1903; Institute for Advanced Study, 1933\item Mentor to Turing at Princeton\item Manhattan Project $\to$ Mark I, ENIAC\item ENIAC's first run was his calculation\end{itemize}}{Von Neumann's grave, Princeton Cemetery. Photo: M.\ West.}
+
+\begin{frame}{The \emph{First Draft of a Report on the EDVAC}}
+\Large
+\begin{itemize}\setlength\itemsep{1em}
+\item June 1945
+\item EDVAC: ENIAC's successor, proposed by Eckert and Mauchly
+\item \textbf{Binary}, not decimal
+\item \textbf{Stored program}: instructions and data both live in memory
+\item[] \quad Instructions are just more bits
+\end{itemize}
+\end{frame}
+
+\begin{frame}{One name on the cover}
+\Large
+\begin{itemize}\setlength\itemsep{1em}
+\item A draft, unfinished --- blanks where the references should go
+\item Months of group work at the Moore School
+\item Circulated by \thread{Herman Goldstine, the Army's liaison}
+\item Eckert and Mauchly furious: circulation undermined their patent claims
+\item Turing's ACE report, 1946 --- but von Neumann's came first
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Afterword}
+\Large
+\begin{itemize}\setlength\itemsep{1.4em}
+\item \textbf{1952} --- Alan Turing convicted of ``gross indecency''\\ \large Clearance revoked; forced hormone treatment; dead in 1954
+\item \textbf{1997} --- the six ENIAC programmers inducted into the WITI Hall of Fame\\ \large Fifty-one years later; Ruth Lichterman Teitelbaum had died in 1986
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Two minutes, on your own}
+\Huge
+\centering
+\vfill
+Of everything today,\\ what surprised you most --- and why?
+\vfill
+\large\color{muted} You won't hand it in.
+\end{frame}
+
+\begin{frame}{Discussion}
+\LARGE
+Programming was given to women because it was the ``clerical'' half of the work. Today it is the high-status half.\par\vspace{1.2em}
+\thread{What changed? What does that tell us about how a field decides which work is valuable?}
+\end{frame}
+
+\begin{frame}{Discussion}
+\LARGE
+Almost every machine today was built for a war, with an army's money, to solve an army's problem.\par\vspace{1.2em}
+\thread{Do we get this architecture without WWII --- or just later, and differently?}
+\end{frame}
+
+\begin{frame}{Discussion}
+\LARGE
+Eckert and Mauchly built it. Six women programmed it. Von Neumann's name is on it.\par\vspace{1.2em}
+\thread{Is ``von Neumann architecture'' the wrong name? Does it matter?}
+\end{frame}
+
+\begin{frame}{Discussion}
+\LARGE
+The Wrens were recorded as having real cryptographic ability, and stayed operators. Nobody wrote down a decision to exclude them.\par\vspace{1.2em}
+\thread{So what would have had to be different?}
+\end{frame}
+
+\begin{frame}{Further reading}
+\large
+\begin{itemize}\setlength\itemsep{0.8em}
+\item Jennifer S.\ Light, ``When Computers Were Women,'' \emph{Technology and Culture} 40:3 (1999), 455--483
+\item Janet Abbate, \emph{Recoding Gender}
+\item Kathy Kleiman, \emph{Proving Ground} and the documentary \emph{The Computers}
+\item LeAnn Erickson, \emph{Top Secret Rosies} (PBS)
+\end{itemize}
+\vfill
+{\color{muted}\normalsize Wednesday: we open the box --- the five units of the von Neumann architecture.}
+\end{frame}
+
+\end{document}

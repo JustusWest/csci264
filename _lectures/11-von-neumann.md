@@ -1,6 +1,6 @@
 ---
 title: "11 The Origins of Computing and the von Neumann Architecture"
-published: True
+published: false
 ---
 
 [*Reading: Dive into Systems §5.1*](https://diveintosystems.org/book/C5-Arch/hist.html) and [*§5.2*](https://diveintosystems.org/book/C5-Arch/von.html)
