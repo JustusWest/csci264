@@ -5,55 +5,6 @@ published: True
 
 [*Reading: Dive into Systems §5.1*](https://diveintosystems.org/book/C5-Arch/hist.html)
 
-{% comment %}
-INSTRUCTOR - FIGURES, ACTION REQUIRED. Five figures are written into this file but commented out, because the image files are not on disk: ada-lovelace.jpg, alan-turing.jpg, colossus-wrens.jpg, grace-hopper.jpg, eniac-programmers.jpg. Each sits in a comment block at the point where it belongs, with its alt text already written.
-
-I could not download them. This session's network policy blocks Wikimedia: commons.wikimedia.org and upload.wikimedia.org both return 403 at the egress proxy, from the cloud container and from the Cowork VM on your Mac alike, and Commons file pages are marked cache-only for fetching. That is an organization egress setting, not a transient failure, so there is nothing to retry.
-
-The download is a few minutes in an ordinary browser on your Mac. figures/ch5/SOURCES.md says what to search for on Wikimedia Commons, what to save each file as, and which licence to confirm on the file page before you publish. This page is published: True, which is why the tags are commented rather than live - nothing breaks on the site while the files are missing.
-
-After downloading: run figures/ch5/check-figures.sh to confirm every referenced file exists, then uncomment the five blocks. Check each image against the alt text I wrote; if what you downloaded shows something different, fix the alt text rather than leaving it wrong.
-{% endcomment %}
-
-{% comment %}
-INSTRUCTOR — FORMAT
-
-This is the history-and-discussion alternative to 11-von-neumann.md. It covers §5.1 only. §5.2 moves to Wed 9/23, which means this lecture does NOT put the five-unit block diagram on the board. It ends on the stored-program *idea* and hands off.
-
-Period shape (50 min, realistically 45 usable after settling and the A3-due / A4-out announcements):
-
-  0-2    Announcements. A3 due at Lab 4 tomorrow; A4 goes out.
-  2-4    Cold open: "computer" as a job title
-  4-6    Babbage and Lovelace, and why "first" is retrospective
-  6-11   The primordial soup: Shannon and Turing
-  11-17  The war builds the machines: Colossus, Mark I, ENIAC
-  17-22  Who actually programmed them
-  22-27  von Neumann and the First Draft
-  27-28  Handoff to Wednesday
-  28-30  Silent write (2 min, on the prompt below)
-  30-48  Discussion
-  48-50  Exit ticket / close
-
-  PACE CHECK: if you are not starting ENIAC by minute 11, cut Babbage to one sentence and Shannon to one sentence. Those two are the compressible material; everything after minute 17 is load-bearing for the discussion.
-
-THREE THREADS. Say them out loud at the top so students know what to listen for, and name them again as each one recurs. They are not three topics — they converge on one document.
-
-  1. WOMEN IN EARLY COMPUTING. Not "women were also there," but the specific mechanism: the work they did was classified as clerical, and classification determined credit.
-  2. THE MILITARY. Not "the military was involved," but that essentially every machine in this lecture was paid for by an army, and that this determined which problems counted as worth solving — and, in Colossus's case, which history got erased.
-  3. VON NEUMANN. The whole narrative is built toward him, and specifically toward the First Draft.
-
-  The convergence is the point: Grace Hopper sits at the intersection of (1) and (2) — a commissioned Navy officer AND an under-credited programmer. The ENIAC six sit at the intersection of (1) and (3). Von Neumann sits at (2) and (3). The First Draft sits at all three: Army-funded work, circulated by an Army liaison, with one name on the cover of a document describing a machine that other people built and other people would program.
-
-DELIVERY. Board, not slides — this is a narrative, and the only thing worth writing up is a timeline across the top of the board that you extend as you go (1837 Babbage / 1937 Shannon + Turing / 1943 Colossus / 1944 Mark I / 1945 ENIAC + First Draft / 1946 ACE, ENIAC public). Students who are lost in the names can anchor on the dates. Project the von Neumann photograph when you get to him.
-
-TWO SECTIONS. The 10:00 and 11:00 discussions will go differently and you should not calibrate the second on the first. If the 10:00 section produces something good, resist the urge to feed it to the 11:00 section as a starting point — it flattens their discussion into agreeing with strangers.
-
-DECISIONS STILL OPEN (see the notes inline):
-  - Whether Turing's conviction is a fourth thread or a stated fact you move past.
-  - Whether any of this is examinable on Midterm 1. Students WILL ask. Suggested answer: the narrative is not, the stored-program idea and everything from Wednesday is.
-  - Whether anything is collected. An exit ticket in the last two minutes costs nothing; a written reflection lands in the week A4 is out and due 9/29, which Lab 5 was deliberately kept clear to protect.
-{% endcomment %}
-
 ## Pre-History
 
 From the 1700s to early 1900s, the word computer was originally used to refer to "one who computes", as in a person who performed mathematical calculations by hand. This role was most often performed by women, who were widely considered to be better at doing mathematical calculations than men. These machines were built to replace a room full of people, and the people in that room did not disappear when the machine arrived.
