@@ -138,35 +138,6 @@ In 1952, the British government convicted Alan Turing of "gross indecency" for h
 The six ENIAC programmers were inducted into the Women in Technology International Hall of Fame in 1997, fifty-one years after the demonstration they ran. Ruth Lichterman Teitelbaum had died in 1986 and did not live to see it.
 
 
-## Discussion
-
-Take two minutes and write, for yourself, a short answer to this: **of everything in the last twenty-five minutes, what surprised you most, and why?** You will not hand it in.
-
-Then, as a group:
-
-1. Programming was given to women in the 1940s because it was considered the clerical half of the work — the machine was the achievement, and instructing it was typing. Today it is the high-status half. What changed? And what does that tell us about how a field decides which of its work is valuable?
-2. Almost every machine in this lecture was built for a war, with an army's money, to solve an army's problem. Do we get this architecture without the Second World War — or do we just get it later, and differently?
-3. Eckert and Mauchly built the machine. Six women worked out how to program it. Von Neumann's name is on the architecture, because his name was on the report. Is "von Neumann architecture" the wrong name? Does it matter what we call it, given that you will be saying it for the rest of this course?
-4. The *General Report on Tunny* recorded that several of the Wrens had real cryptographic ability, and they remained operators anyway. Nobody in that story wrote down a decision to exclude them. So what would have had to be different?
-
-{% comment %}
-INSTRUCTOR — RUNNING THE DISCUSSION
-
-The two-minute silent write is not optional. It is what makes the first three minutes survivable: when you open the floor, every student has a sentence in front of them, and you can call on the quiet half by asking what they wrote rather than what they think.
-
-Question 1 is the one that will actually run eighteen minutes. Start there. Questions 2 and 4 are in reserve. Question 3 is the best closer because it hands them a term they will use all semester and asks whether they should.
-
-  IF THE ROOM IS SILENT: do not rephrase the question — that reads as though the first version was the problem, and it buys you four more seconds of silence. Instead go to pairs: "turn to the person next to you and compare what you wrote, two minutes." Then ask pairs, not individuals, to report. A student will say something a partner said far more readily than something they thought alone.
-
-  IF IT DRIFTS to present-day argument about gender politics in general: pull it back to the evidence on the board. The Wrens were documented as capable and kept as operators; the ENIAC six were given wiring diagrams and no manual; programming was called clerical. Specific historical facts are arguable in a way that general positions are not, and this is a room of sophomores who will otherwise perform positions they think you want.
-
-  IF IT FLATTENS into agreement that all of this was bad: ask question 4. "Nobody wrote down a decision to exclude them" is the hard version, and it moves the conversation from verdicts to mechanisms — which is the thing worth their time and the thing that transfers to their own careers.
-
-  DO NOT referee. Your job in these eighteen minutes is to keep two or three threads visible, not to land a conclusion. If you find yourself talking for more than thirty seconds at a stretch, you have taken the lecture back.
-
-  LAST TWO MINUTES: close on question 3 if you have not already, then the handoff to Wednesday. If you want an exit ticket: one index card, one sentence, "something from today you want to come back to." Cheap, tells you what landed, and gives you an opening line for Wednesday.
-{% endcomment %}
-
 ## Further reading
 
 For the Moore School's women computers specifically, the scholarly source is Jennifer S. Light, ["When Computers Were Women,"](https://cs.brown.edu/courses/cs1951i/lightWhenComputersWereWomen.pdf) *Technology and Culture* 40:3 (July 1999), 455-483.
