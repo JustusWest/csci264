@@ -61,3 +61,15 @@ Biographical research (2026-09-20), results:
 Where to look next, offline: the Hagley Library itself (the Sperry/UNIVAC collection is large
 and staffed); ACM and AFIPS proceedings and Communications of the ACM author indexes, 1955-1965;
 Remington Rand / Sperry staff directories; and Dag Spicer at CHM, who donated the print.
+
+# Figures for Lecture 13 (Logic Gates and Circuits)
+
+Referenced by `_lectures/13-logic-gates.md`, **not yet downloaded** (diveintosystems.org returned 403 to Claude's sessions). Save each into this folder under the same name:
+
+| Save as | Source URL |
+|---|---|
+| `1biteq.png` | https://diveintosystems.org/book/C5-Arch/_images/1biteq.png |
+| `1biteqex.png` | https://diveintosystems.org/book/C5-Arch/_images/1biteqex.png |
+| `1biteqcircuit.png` | https://diveintosystems.org/book/C5-Arch/_images/1biteqcircuit.png |
+
+`gates.png` is already on disk. The bitwise-operator and extra-gate figures (`4bitand.png`, `nandnorxor.png`, `nornotor.png`) are no longer referenced — that material was cut from the lecture.
