@@ -73,3 +73,16 @@ Referenced by `_lectures/13-logic-gates.md`, **not yet downloaded** (diveintosys
 | `1biteqcircuit.png` | https://diveintosystems.org/book/C5-Arch/_images/1biteqcircuit.png |
 
 `gates.png` is already on disk. The bitwise-operator and extra-gate figures (`4bitand.png`, `nandnorxor.png`, `nornotor.png`) are no longer referenced — that material was cut from the lecture.
+
+# Figures for Lecture 14 (Circuits)
+
+Four figures in this lecture are **not from the textbook** — the book has no adder/subtractor, and the multiplexer and RS latch were redrawn so the whole set matches. They are drawn to the book's conventions: Carlito (metric-compatible with the book's Calibri), gates filled `#CDEBFB` with the gate name inside, block diagrams in `#BDD7EE` with a `#2E75B6` border and arrows.
+
+| File | Shows |
+|---|---|
+| `fa-gates.png` | 1-bit full adder at the gate level (two XOR, two AND, one OR) |
+| `add-sub.png` | Four 1-bit adders chained, with an XOR on each B input and a SUB line — the Lab 5 circuit |
+| `mux2.png` | Two-way 1-bit multiplexer at the gate level |
+| `rs-latch.png` | RS latch from two cross-coupled NAND gates |
+
+The Python that generates them is in `figures/ch5/src/`, one script per figure plus `style.py` for the shared colors and helpers. They need `schemdraw` (`pip install schemdraw`) and the Carlito font; run a script from any directory and it writes the PNG beside itself. Edit and re-run rather than touching the PNGs.

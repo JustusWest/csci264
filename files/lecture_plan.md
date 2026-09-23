@@ -1,11 +1,14 @@
-# CSCI 264 — Lecture Plan, Weeks 1–7 (draft 8)
+# CSCI 264 — Lecture Plan, Weeks 1–7 (draft 9)
 
 **Text:** *Dive into Systems* v1.2 (Matthews, Newhall, Webb)
 **Meetings:** Lecture MWF; Lab Tue (Sec A 12:30, Sec B 3:30)
 
-**Changes from draft 7.** One change, confined to Weeks 5–6. **Mon 9/21 becomes a history-and-discussion day on §5.1 alone**, and §5.2 (the von Neumann architecture) moves to Wed 9/23. Every remaining Ch 5 lecture cascades one period later, and the last two are merged: **Fri 10/2 now carries §5.6–5.9**. Nothing outside Ch 5 moves.
+**Changes from draft 8.** Two changes, both inside Week 5–6.
 
-**No dates move and nothing is cut.** All lab dates are unchanged, Midterm 1 stays Tue Oct 6, Ch 5 still finishes on Fri 10/2, and the assignment count stays at eight. The cost is paid entirely inside Fri 10/2, which is now overloaded on purpose — see the note under Week 6.
+1. **§4.6.1–4.6.4 (bitwise AND/OR/XOR/NOT) is cut**, not relocated again. It was folded into Fri 9/25, and with §5.4 now starting in that period there is no room for it. Shifting still moves to §7.3 as before.
+2. **§5.4 is split across two periods.** The circuits framing and the 1-bit circuit design method move up into the second half of Fri 9/25, and Mon 9/28 carries the rest of §5.4. §5.3 alone did not fill a period once the bitwise material came out; §5.4 was never going to fit in one.
+
+**No dates move and nothing else is cut.** All lab dates are unchanged, Midterm 1 stays Tue Oct 6, Ch 5 still finishes on Fri 10/2, and the assignment count stays at eight. Fri 10/2 is still overloaded on purpose — see the note under Week 6.
 
 ---
 
@@ -31,11 +34,11 @@
 
 **Wed 9/2 is the densest lecture of the semester.** Abridging §4.4 makes §4.5 harder, not easier — the overflow rules are stated in terms of the addition procedure. Keep negation, addition, and subtraction-as-addition intact; drop the multiplication and division detail. If the period runs short, §4.5.4 (the consequence stories) is the cheapest thing to push to a slide students read on their own.
 
-**§4.6 (Bitwise Operators) is relocated, not cut.** Nothing graded exercises it, but three assembly idioms are unreadable without it. Split it:
+**§4.6 (Bitwise Operators) is cut as a lecture topic.** Draft 8 folded AND/OR/XOR/NOT into the Fri 9/25 gates lecture, but that period now also opens §5.4. The truth tables are still taught — as gates, in §5.3 — so what is actually lost is the C operators (`&`, `|`, `^`, `~`) and the distinction between them and `&&`, `||`, `!`. Nothing graded exercised it, and nothing before Week 8 depends on it.
 
-- **AND / OR / XOR / NOT → Wed 9/23**, folded into §5.3 logic gates. Same truth tables; roughly ten minutes as the software face of the gates already on the board.
-- **Shifting → §7.3**, where `sall` and `sarl` show up as the compiler's strength reduction for `*2` and `/2`.
-- Also depends on this: `xorl %eax, %eax` (the zeroing idiom, §7.2 onward) and `testl %eax, %eax` (§7.4, the most common comparison in compiled code).
+- **Shifting → §7.3**, where `sall` and `sarl` show up as the compiler's strength reduction for `*2` and `/2`. Unchanged.
+- **The debt is now in Ch 7.** `xorl %eax, %eax` (the zeroing idiom, §7.2 onward) and `testl %eax, %eax` (§7.4, the most common comparison in compiled code) both assume the C operators. Budget five minutes for `&`, `^`, and `~` when §7.2 introduces the idiom — students will have seen the gates five weeks earlier and only need the syntax.
+- **It is off Midterm 1.** DiS 4.19–4.26 remain a good optional problem set, but nothing on the exam should require the C bitwise operators.
 
 **§4.7 (Integer Byte Order) is cut.** Endianness gets one slide on Wed 9/2 and reappears where it's concrete: reading multi-byte values in `objdump` output.
 
@@ -73,7 +76,7 @@ Lab 2's prerequisite chain is §4.1 → §4.2 → §4.8.1, all of which now land
 | **Mon 9/21** | §5.1 | **Origins of modern computing — lecture and discussion.** ~25 min narrative, ~20 min discussion. No §5.2 content |
 | **Tue 9/22** | — | **Lab 4 — strings and structs in C. A3 due; A4 out** |
 | **Wed 9/23** | §5.2 | The von Neumann architecture: the five units, the buses, and the fetch-decode-execute-store cycle |
-| **Fri 9/25** | §5.3, §4.6.1–4.6.4 | Logic gates. **Bitwise AND/OR/XOR/NOT folded in here** — same truth tables, as the software face of the gates |
+| **Fri 9/25** | §5.3, §5.4 *(opening)* | Logic gates: transistors, AND/OR/NOT, truth tables, minimal complete sets. **Then §5.4 begins:** what a circuit is, the three-step method for designing a 1-bit circuit, and the 1-bit equality circuit worked start to finish |
 
 **Mon 9/21 is a history-and-discussion day.** §5.1 is lectured as a narrative for roughly 25 minutes and the rest of the period is student discussion. Three threads run through the narrative and are the discussion's pickup points: the role of women in early computing and the ways their contributions were under-attributed; the extent to which early computing was funded and driven by the military; and von Neumann himself, whose *First Draft of a Report on the EDVAC* is where all three threads meet. §5.2 is not touched — the lecture ends on the stored-program *idea*, and Wednesday opens the box.
 
@@ -81,20 +84,22 @@ This is the one Monday in the architecture block where a discussion day costs no
 
 **Lab 4 is a C lab and A4 is a C assignment.** Draft 6 put the circuit simulator here with only §5.1–5.2 behind it — von Neumann's five components and no gates. Worse, A4 was *build an adder/ALU*, and the ALU material (§5.4) does not arrive until Week 6, after the assignment would have gone out. Moving the circuit work to Lab 5 fixes both halves of that.
 
+**Fri 9/25 ends inside §5.4.** §5.3 is thin — three gates, two truth tables, and the completeness argument — and with the bitwise material cut it does not fill a period. Rather than pad it, the lecture crosses into §5.4 and spends the second half on the 1-bit equality circuit: truth table, expression, gates, verification, abstraction. That is the method every later circuit uses, and doing it once slowly is worth more than seeing three circuits quickly on Monday. It also leaves Monday free to spend real time on the adder, which is what Lab 5 actually builds.
+
 Making A4 a strings-and-structs assignment also buys back some of what Ch 2's compression cost. Ch 2 is on Midterm 1 and is the foundation for §7.7–7.10, and until now the only graded C work has been A3. A4 goes out Tue 9/22 with the strings lecture (Wed 9/16) and the structs lecture (Fri 9/18) behind it, and is due Tue 9/29 — graded and returned before the Oct 6 exam.
 
 ## Week 6 · Sep 28–Oct 2 — finishing architecture
 
 | Day | Sections | Content |
 |---|---|---|
-| **Mon 9/28** | §5.4 | Arithmetic, control, and storage circuits. The ripple-carry adder is Wed 9/2's §4.4 in gates |
+| **Mon 9/28** | §5.4 *(rest)* | The 1-bit adder, carry-in, and the ripple-carry adder — Wed 9/2's §4.4 in gates; then the ALU, control circuits, and storage circuits |
 | **Tue 9/29** | — | **Lab 5 — circuit simulator, in-lab only. A4 due** |
 | **Wed 9/30** | §5.5 | Building a processor: putting it all together |
 | **Fri 10/2** | §5.6–5.9 | The processor's execution of program instructions; pipelining; hazards; CPUs today |
 
 **Fri 10/2 carries four sections and will not fit in one period.** That is accepted rather than solved: it is the last lecture before the Midterm 1 review, it is the cheapest place in the course to lose material, and the decision about what to drop is better made in the room than here. For when that moment arrives, in rough order of what is worth protecting: §5.6 (execution on the real datapath) is the section the rest of the course actually uses and should be lectured in full; §5.7 (pipelining) is the idea students will meet again everywhere and deserves a real, if quick, treatment; §5.8 (hazards) can be a sketch of the problem with one example rather than a taxonomy; §5.9 (CPUs today) is the cheapest thing to make a read-on-your-own slide and costs nothing on the exam.
 
-**Lab 5 now has two lectures behind it, not three.** §5.3 (Fri 9/25) and §5.4 (Mon 9/28) both precede it, and those are the two sections the lab actually exercises — half adder, full adder, a short ripple-carry chain, and a trace. What it loses is §5.5, which now falls on Wed 9/30, the day *after*. Nothing in the adder work depends on having seen the whole processor first, so the lab still runs as written; what no longer works is the datapath-tracing step draft 7 folded into the trace. Drop that step and let §5.6 on Fri 10/2 do the datapath tracing in lecture, or move it into the Midterm 1 review on Mon 10/5.
+**Lab 5 now has two lectures behind it, not three.** §5.3 (Fri 9/25) and §5.4 (Fri 9/25 and Mon 9/28) both precede it, and those are the two sections the lab actually exercises — half adder, full adder, a short ripple-carry chain, and a trace. The split helps here: Monday is now entirely adders and the circuits built from them, the day before students build one. What it loses is §5.5, which now falls on Wed 9/30, the day *after*. Nothing in the adder work depends on having seen the whole processor first, so the lab still runs as written; what no longer works is the datapath-tracing step draft 7 folded into the trace. Drop that step and let §5.6 on Fri 10/2 do the datapath tracing in lecture, or move it into the Midterm 1 review on Mon 10/5.
 
 Lab 5 is still scoped to finish inside the period and still carries no take-home. This is the last lab before Midterm 1, and the point of keeping it in-lab is that no student leaves the week of Sep 29 with unfinished coursework hanging over the exam run-up; whatever time they have at home goes to studying.
 
@@ -115,7 +120,7 @@ Wed 10/7 is now a full toolchain lecture: source → assembly → object → exe
 
 ## Open items carried forward
 
-- **Still eight graded assignments, but Ch 5 no longer has one.** A4 changes topic from gates/ALU to strings and structs, so the count is unchanged — what disappears is the only graded take-home on architecture. Ch 5's graded contact is now the in-lab exercise and Midterm 1. If that feels thin, the cheapest fix is a short problem set on §4.6 (DiS 4.19–4.26), which has no graded exercise anywhere in the course either.
+- **Still eight graded assignments, but Ch 5 no longer has one.** A4 changes topic from gates/ALU to strings and structs, so the count is unchanged — what disappears is the only graded take-home on architecture. Ch 5's graded contact is now the in-lab exercise and Midterm 1. If that feels thin, the cheapest fix is a short problem set on §4.6 (DiS 4.19–4.26) — though with §4.6 no longer lectured, that would now be assigned as self-study rather than review.
 - **Midterm 1 scope.** Still four chapters (1, 2, 4, 5), and Ch 5 still finishes only two class days before it. Ch 2 is better reinforced than in draft 6 now that A4 is a C assignment. Consider weighting toward Ch 1/2/4.
-- **§4.6 has no graded exercise.** DiS 4.19–4.26 make a good ungraded problem set. Worth assigning as optional practice before Wed 9/23 rather than after.
+- **§4.6 is no longer lectured.** Keep it off Midterm 1, and carry the five-minute debt into §7.2 (see the Week 2 note). DiS 4.19–4.26 still make a good optional problem set, but they now come after the gates lecture rather than with it.
 - **Version control is out of the course.** Draft 6 kept looking for a home for git, first in the multi-file refactor lab and then in Week 5. Nothing in the course uses it, so it is dropped rather than parked. Revisit only if a later semester adds multi-file or team work.

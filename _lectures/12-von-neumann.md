@@ -3,6 +3,8 @@ title: "12 The von Neumann Architecture"
 published: True
 ---
 
+<!-- Next semester, add one more example - ran through too quickly, only took ~30 minutes -->
+
 [*Reading: Dive into Systems §5.1*](https://diveintosystems.org/book/C5-Arch/hist.html) and [*§5.2*](https://diveintosystems.org/book/C5-Arch/von.html)
 
 ## The von Neumann Architecture
