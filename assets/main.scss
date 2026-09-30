@@ -95,6 +95,30 @@
   margin: 0.6em 0;
 }
 
+/* Simulator demos (CPU Visual Simulator), styled like .board-example */
+.sim-demo {
+  border: 1px solid #b8c9e0;
+  border-left: 4px solid #2a5db0;
+  border-radius: 4px;
+  margin: 1.5em 0;
+  padding: 0.2em 1em 0.6em 1em;
+  background: #f4f7fc;
+}
+
+.sim-demo > .sim-title {
+  font-weight: 600;
+  color: #1f4a8f;
+  margin: 0.7em 0 0.4em 0;
+}
+
+.sim-demo > *:last-child {
+  margin-bottom: 0.4em;
+}
+
+.sim-demo table {
+  margin: 0.6em 0;
+}
+
 /* ---------------------------------------------------------------
    Lab pages (_layouts/lab.html)
    --------------------------------------------------------------- */

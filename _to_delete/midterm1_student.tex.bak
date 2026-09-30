@@ -1,0 +1,310 @@
+% CSCI 264 --- Midterm 1, student copy (Tue Oct 6, in lab, 75 minutes). Built from midterm1_trimmed.tex with all answers removed. Compile twice so the score table and page count fill in.
+\documentclass[12pt,addpoints]{exam}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{textcomp}
+\usepackage{booktabs}
+\usepackage{needspace}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[american]{circuitikz}
+\lstset{language=C,basicstyle=\ttfamily\footnotesize,columns=fixed,keepspaces=true,showstringspaces=false,upquote=true,xleftmargin=1em,aboveskip=4pt,belowskip=4pt}
+\newcommand{\code}[1]{\texttt{#1}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\sloppy
+\bracketedpoints
+\pagestyle{headandfoot}
+\firstpageheader{}{}{}
+\runningheader{CSCI 264}{Midterm 1}{Page \thepage\ of \numpages}
+\firstpagefooter{}{Page \thepage\ of \numpages}{}
+\runningfooter{}{}{}
+\begin{document}
+\begin{center}\textbf{CSCI 264 --- Assembly Language}\\[4pt]\textbf{Midterm 1}\\[4pt]\textbf{Tuesday, October 6, 2026}\end{center}
+\vspace{12pt}
+\makebox[\textwidth]{Name:\enspace\hrulefill}
+\vspace{12pt}
+\begin{itemize}
+\item You have 75 minutes. This exam has \numquestions\ questions worth \numpoints\ points.
+\item Closed book, closed notes, no electronic devices.
+\item Show your work on Parts II and III. Partial credit needs work to be given.
+\item In C code, assume the needed headers are included. Small syntax slips will not cost points; wrong logic will.
+\item Unless a question says otherwise: an \code{int} is 4 bytes, a \code{char} is 1 byte, a pointer is 8 bytes, and signed integers use two's complement.
+\end{itemize}
+\vspace{24pt}
+\begin{center}
+\renewcommand{\arraystretch}{2}
+\begin{tabular}{|l|p{1.5in}|}
+\hline
+\textbf{Section} & \textbf{Score}\\\hline
+Part I: Multiple Choice & \hfill / \pointsinrange{mc}\\\hline
+Part II: Short Answer & \hfill / \pointsinrange{sa}\\\hline
+Part III: Problem \ref{q:long1} & \hfill / \pointsinrange{long1}\\\hline
+Part III: Problem \ref{q:long2} & \hfill / \pointsinrange{long2}\\\hline
+Part III: Problem \ref{q:long3} & \hfill / \pointsinrange{long3}\\\hline
+\textbf{Total} & \hfill / \numpoints\\\hline
+\end{tabular}
+\end{center}
+\newpage
+\begin{questions}
+%==================== PART I ====================
+\fullwidth{\textbf{\large Part I --- Multiple Choice.} Circle the one best answer.}
+\begingradingrange{mc}
+\question[3] What happens when this code runs?
+\begin{lstlisting}
+int x = 0, y = 5;
+if ((x != 0) && (y / x > 2)) {
+    printf("A\n");
+} else {
+    printf("B\n");
+}
+\end{lstlisting}
+\begin{choices}
+\choice It prints \code{A}
+\choice It prints \code{B}
+\choice It crashes on division by zero
+\choice It does not compile
+\end{choices}
+\question[3] How many times does this loop call \code{printf}?
+\begin{lstlisting}
+int i;
+for (i = 10; i > 0; i -= 3) {
+    printf("%d ", i);
+}
+\end{lstlisting}
+\begin{oneparchoices}
+\choice 3
+\choice 4
+\choice 10
+\choice It never stops
+\end{oneparchoices}
+\question[3] The ASCII value of \code{\textquotesingle{}a\textquotesingle{}} is 97. What does this code print?
+\begin{lstlisting}
+char ch = 'a';
+ch = ch + 2;
+printf("%c %d\n", ch, ch);
+\end{lstlisting}
+\begin{oneparchoices}
+\choice \code{a 97}
+\choice \code{c 97}
+\choice \code{c 99}
+\choice \code{a2 99}
+\end{oneparchoices}
+\question[3] How many distinct values can 10 bits represent?
+\begin{oneparchoices}
+\choice 10
+\choice 100
+\choice 512
+\choice 1024
+\end{oneparchoices}
+\question[3] What is \code{0x3A7} in binary?
+\begin{choices}
+\choice \code{0b0011 1010 0111}
+\choice \code{0b0011 1001 0111}
+\choice \code{0b0111 1010 0011}
+\choice \code{0b0011 0111 1010}
+\end{choices}
+\question[3] In this program, where is the memory that \code{arr} points to?
+\begin{lstlisting}
+int main(void) {
+    int n = 5;
+    int *arr = malloc(sizeof(int) * n);
+}
+\end{lstlisting}
+\begin{oneparchoices}
+\choice Code
+\choice Data
+\choice Heap
+\choice Stack
+\end{oneparchoices}
+\question[3] \code{ptr} is an \code{int *} that points to \code{x}. Which statement stores 20 in \code{x}?
+\begin{oneparchoices}
+\choice \code{ptr = 20;}
+\choice \code{*ptr = 20;}
+\choice \code{\&ptr = 20;}
+\choice \code{ptr = \&20;}
+\end{oneparchoices}
+\question[3] Which call allocates room for 25 \code{int}s?
+\begin{choices}
+\choice \code{malloc(25)}
+\choice \code{malloc(sizeof(25))}
+\choice \code{malloc(sizeof(int) * 25)}
+\choice \code{malloc(sizeof(int)) * 25}
+\end{choices}
+\question[3] Given that the ASCII value of \code{\textquotesingle{}a\textquotesingle{}} is 97 and \code{\textquotesingle{}B\textquotesingle{}} is 66. What does \code{strcmp("apple", "Banana")} return?
+\begin{choices}
+\choice True
+\choice False
+\choice 31
+\choice -31
+\end{choices}
+\question[3] Given the code below, what is the offset of \code{y}?
+\begin{lstlisting}
+struct pointT {
+    int x;
+    char str[16];
+    int y;
+};
+\end{lstlisting}
+\begin{oneparchoices}
+\choice 0
+\choice 4
+\choice 16
+\choice 20
+\end{oneparchoices}
+\question[3] In a stored-program computer, where are a running program's instructions stored?
+\begin{choices}
+\choice In the control unit
+\choice In the memory unit, alongside the program's data
+\choice On the hard drive
+\choice In the processing unit
+\end{choices}
+\question[3] Which expression is equivalent to \texttt{NOT(NOT(A) AND NOT(B))}?
+\begin{oneparchoices}
+\choice \texttt{A AND B}
+\choice \texttt{A OR B}
+\choice \texttt{NOT(A) OR NOT(B)}
+\choice \texttt{NOT(A AND B)}
+\end{oneparchoices}
+\endgradingrange{mc}
+%==================== PART II ====================
+\newpage
+\fullwidth{\textbf{\large Part II --- Short Answer.} Show your work.}
+\begingradingrange{sa}
+\needspace{4in}
+\question[9] Convert \code{0b11010110} to hexadecimal and to decimal. Show your work.
+\makeemptybox{1.5in}
+\needspace{4in}
+\question[9] After this code runs, what are the values of \code{x} and \code{y}, and what do \code{ptr1} and \code{ptr2} point to?
+\begin{lstlisting}
+int x, y;
+int *ptr1, *ptr2;
+x = 2;
+ptr1 = &x;
+ptr2 = ptr1;
+*ptr2 = 5;
+y = *ptr1 + x;
+ptr1 = &y;
+*ptr1 = *ptr2 * 3;
+\end{lstlisting}
+\makeemptybox{1.25in}
+\needspace{4in}
+\question[9] Draw a diagram of the von Neumann architecture - label the units and buses.
+\makeemptybox{3in}
+\needspace{4in}
+\question[9] Complete the truth table for this circuit. Which single gate from class computes the same function?
+\begin{center}
+\begin{circuitikz}\ctikzset{logic ports=ieee}
+\node[or port] (g1) at (3,1.5) {};
+\node[and port] (g2) at (3,-0.5) {};
+\node[not port] (g3) at (5,-0.5) {};
+\node[and port] (g4) at (8,0.5) {};
+\coordinate (a) at (0.9,2.3);
+\coordinate (b) at (1.5,-1.3);
+\draw (-0.2,2.3) node[left]{$A$} -- (a);
+\draw (-0.2,-1.3) node[left]{$B$} -- (b);
+\draw (a) |- (g1.in 1);
+\draw (a) |- (g2.in 1);
+\draw (b) |- (g1.in 2);
+\draw (b) |- (g2.in 2);
+\draw (a |- g1.in 1) node[circle,fill,inner sep=1.2pt]{};
+\draw (b |- g2.in 2) node[circle,fill,inner sep=1.2pt]{};
+\draw (g2.out) -- (g3.in 1);
+\draw (g1.out) -| ([xshift=-0.4cm]g4.in 1) -- (g4.in 1);
+\draw (g3.out) -| ([xshift=-0.4cm]g4.in 2) -- (g4.in 2);
+\draw (g4.out) -- ++(0.5,0) node[right]{$Y$};
+\end{circuitikz}
+\\[8pt]\begin{tabular}{cc|c}A & B & Y\\\hline 0 & 0 & \\ 0 & 1 & \\ 1 & 0 & \\ 1 & 1 & \\\end{tabular}
+\end{center}
+\endgradingrange{sa}
+%==================== PART III ====================
+\newpage
+\fullwidth{\textbf{\large Part III --- Longer Problems.} Show your work.}
+\begingradingrange{long1}
+\question\label{q:long1} A \emph{running sum} of an array replaces each element with the sum of it and every element before it. For \code{\{3, -1, 4, 1, 5\}}, the running sum is \code{\{3, 2, 6, 7, 12\}}.
+\begin{parts}
+\needspace{4.50in}
+\part[14] Write the function below. It returns a new array on the heap holding the running sum of \code{arr}, and does not change \code{arr}. Return \code{NULL} if \code{malloc} fails. You may assume \code{n} is at least 1.
+\begin{lstlisting}
+int *running_sum(int *arr, int n);
+\end{lstlisting}
+\makeemptybox{3in}
+\needspace{3.25in}
+\part[7] Write the lines of \code{main} that declare \code{int data[5] = \{3, -1, 4, 1, 5\};}, call \code{running\_sum} on it, print the result, and clean up.
+\makeemptybox{2.25in}
+\needspace{2.25in}
+\part[5] A classmate writes \code{int sums[100];} inside \code{running\_sum} instead of calling \code{malloc}, and returns \code{sums}. Explain why this is wrong.
+\makeemptybox{1.25in}
+\end{parts}
+\endgradingrange{long1}
+\begingradingrange{long2}
+\question\label{q:long2} A store keeps its inventory in a heap array of this struct:
+\begin{lstlisting}
+struct itemT {
+    char name[32];
+    int qty;
+    double price;
+};
+\end{lstlisting}
+\begin{parts}
+\needspace{3.75in}
+\part[9] Write a function that returns the total value of the inventory: the sum of \code{qty * price} over all \code{n} items.
+\begin{lstlisting}
+double inventory_value(struct itemT *items, int n);
+\end{lstlisting}
+\makeemptybox{2.25in}
+\needspace{4.00in}
+\part[10] Write a function that returns a pointer to the item whose name matches \code{name}, or \code{NULL} if there is no such item.
+\begin{lstlisting}
+struct itemT *find_item(struct itemT *items, int n, char *name);
+\end{lstlisting}
+\makeemptybox{2.5in}
+\needspace{2.75in}
+\part[7] In \code{main}, \code{inv} is the array and \code{n} its length. Write code that uses \code{find\_item} to add 5 to the quantity of \code{"bolt"}, or prints a message if there is no bolt.
+\makeemptybox{1.75in}
+\end{parts}
+\endgradingrange{long2}
+\newpage
+\begingradingrange{long3}
+\question\label{q:long3} Use this program for all parts.
+\begin{lstlisting}
+int total = 0;
+void update(int *arr, int n, int *big) {
+    int i;
+    for (i = 0; i < n; i++) {
+        arr[i] = arr[i] * 2;
+        total += arr[i];
+        if (arr[i] > *big) {
+            *big = arr[i];
+        }
+    }
+    /* POINT A */
+}
+int main(void) {
+    int n = 3;
+    int big = 0;
+    int *vals = malloc(sizeof(int) * n);
+    vals[0] = 4;
+    vals[1] = -1;
+    vals[2] = 3;
+    update(vals, n, &big);
+    printf("%d %d %d\n", vals[1], big, total);
+    free(vals);
+    return 0;
+}
+\end{lstlisting}
+\begin{parts}
+\needspace{4.50in}
+\part[14] Draw a diagram of the computer's memory at POINT A. Show the stack (with a frame for each active function), the heap, and the data region. Give every variable's value, and draw an arrow for every pointer.
+\makeemptybox{3.5in}
+\needspace{1.75in}
+\part[5] What does the program print?
+\makeemptybox{0.75in}
+\needspace{2.50in}
+\part[7] Suppose \code{update}'s third parameter were \code{int big} (not a pointer), with every \code{*big} changed to \code{big} and the call changed to \code{update(vals, n, big)}. What would the program print now, and why?
+\makeemptybox{1.5in}
+\end{parts}
+\endgradingrange{long3}
+\end{questions}
+\end{document}

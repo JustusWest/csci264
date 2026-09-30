@@ -1,0 +1,39 @@
+Building a Processor
+
+The central processing unit (CPU) implements the control unit and processing unit of the von Neumann Architecture.
+
+A CPU consists of 
+ - the Arithmetic Logic Unit (ALU) which performs arithmetic and logical operations
+ - a set of general purpose registers for storing program data
+ - some control circuits and special purpose registers which implement instruction execution
+ - a clock that drives the CPU to execute program instructions
+
+
+ALU:
+    implements arithmetic and logic on signed and unsigned integers. seperate floating-point unit performs arithmetic on floating point values
+
+    ALU takes integer operands and an opcode that specifies the operations
+        for example, ALU input may consist of   | OPCODE BITS | OPERAND A SOURCE | OPERAND B SOURCE | RESULT DESTINATION |
+        depending on Architecture operand bits may encode a CPU register, a memory address or a literal value
+
+    outputs resulting value and condition code that encodes information about the results (such as negative, carry out, overflow etc)
+
+         each condition code is encoded by a single bit - 0 means condition not met, 1 means condition met
+        
+    An ALU combines different circuits for each of it's operations (addition, equality etc).
+        rather than selectively activating only the circuit of the selected operation, the ALU feeds the input to all it's circuits
+        a multiplexer then determines which circuit output is used based on the opcode
+        insert figures/ch5/alu.png 
+
+Registers:
+    at the top of the memory heirarchy the CPU's set of general purpose registers store temporary values
+    there are very few of these registers (the IA32 architecture provides 8, MIPS provides 16, and ARM provides 13)
+    the CPU organizes these in a register file circuit consisting of register circuits (storage) and control circtuits which control reads and writes to the Registers
+    insert figures/ch5/regfile.png
+
+The CPU
+    Because instruction operands often come from values stored in general-purpose registers, the register file’s outputs send data to the ALU’s inputs. 
+    Similarly, because instruction results are often stored in registers, the ALU’s result output is sent as input to the register file. 
+    The CPU has additional circuitry to move data between the ALU, register file, and other components (e.g., main memory).
+    insert figures/ch5/cpu.png
+    
