@@ -86,3 +86,22 @@ Four figures in this lecture are **not from the textbook** — the book has no a
 | `rs-latch.png` | RS latch from two cross-coupled NAND gates |
 
 The Python that generates them is in `figures/ch5/src/`, one script per figure plus `style.py` for the shared colors and helpers. They need `schemdraw` (`pip install schemdraw`) and the Carlito font; run a script from any directory and it writes the PNG beside itself. Edit and re-run rather than touching the PNGs.
+
+# Figures for Lecture 16 (Pipelining and Modern CPUs)
+
+All on disk, byte-for-byte copies of the originals, downloaded 2026-10-02.
+
+| File | Source | Licence |
+|---|---|---|
+| `4instrcycles.png` | DiS §5.7 Fig. 1 — https://diveintosystems.org/book/C5-Arch/_images/4instrcycles.png | CC BY-NC-ND (textbook) |
+| `pipeline.png` | DiS §5.7 Fig. 2 — https://diveintosystems.org/book/C5-Arch/_images/pipeline.png | CC BY-NC-ND |
+| `dataHazard2.png` | DiS §5.8 Fig. 2 — https://diveintosystems.org/book/C5-Arch/_images/dataHazard2.png | CC BY-NC-ND |
+| `controlHazardprb.png` | DiS §5.8 Fig. 3 — https://diveintosystems.org/book/C5-Arch/_images/controlHazardprb.png | CC BY-NC-ND |
+| `controlHazardsol.png` | DiS §5.8 Fig. 4 — https://diveintosystems.org/book/C5-Arch/_images/controlHazardsol.png | CC BY-NC-ND |
+| `multicore.png` | DiS §5.9 Fig. 1 — https://diveintosystems.org/book/C5-Arch/_images/multicore.png | CC BY-NC-ND |
+| `gpugpu.png` | DiS §15.1 Fig. 1 — https://diveintosystems.org/book/C15-Parallel/_images/gpugpu.png | CC BY-NC-ND |
+| `moores-law-50yrs.png` | Karl Rupp, "50 Years of Microprocessor Trend Data" — https://github.com/karlrupp/microprocessor-trend-data (50yrs/50-years-processor-trend.png) | CC BY 4.0 — attribution line is in the lecture |
+| `cpu-vs-gpu.png` | NVIDIA CUDA Programming Guide, §1 Introduction, "The GPU Devotes More Transistors to Data Processing" — https://docs.nvidia.com/cuda/cuda-programming-guide/_images/gpu-devotes-more-transistors-to-data-processing.png | NVIDIA copyright; credited in the lecture, used for teaching |
+| `matmul.png` | Drawn for this course (not from the web): graphics transform vs. neural-network layer, both matrix × vector. Source `figures/ch5/src/matmul.py`, matplotlib + Carlito, same colours as the Lecture 14 figures; writes `../matmul.png` | Ours |
+
+The DiS figures and the NVIDIA figure have transparent backgrounds with black labels, so they need a light page background.
