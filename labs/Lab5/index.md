@@ -1,6 +1,7 @@
 ---
 title: "Lab 5 — Building an Adder/Subtractor"
 order: 5
+due: "Tuesday, October 6"
 ---
 
 Everything in this lab is done during the lab period. There is no assignment attached to it.
