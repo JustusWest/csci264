@@ -3,7 +3,7 @@ title: "19 Common Assembly Instructions"
 published: true
 ---
 
-[*Reading: Dive into Systems §7.2*](https://diveintosystems.org/book/C7-x86_64/common.html), up to §7.2.1 (we cover that on Wednesday)
+[*Reading: Dive into Systems §7.2*](https://diveintosystems.org/book/C7-x86_64/common.html)
 
 To follow along with the examples, [set up Compiler Explorer]({{ "/godbolt/" | relative_url }}). To run assembly, use the [ASM Visualizer]({{ "/asm-visualizer/" | relative_url }}).
 
