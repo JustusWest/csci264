@@ -1,6 +1,6 @@
 ---
 title: "22 if Statements in Assembly"
-published: false
+published: true
 ---
 
 [*Reading: Dive into Systems §7.4.2*](https://diveintosystems.org/book/C7-x86_64/if_statements.html)

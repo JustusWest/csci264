@@ -1,35 +1,35 @@
 ---
 title: "21 Condition Codes and Jumps"
-published: false
+published: true
 ---
 
 [*Reading: Dive into Systems §7.4.1*](https://diveintosystems.org/book/C7-x86_64/preliminaries.html)
 
 To run assembly, use the [ASM Visualizer]({{ "/asm-visualizer/" | relative_url }}). In class we write the code live in a [blank ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64).
 
-Last time we finished the arithmetic instructions. Every program we have written so far runs straight through, top to bottom. Today we see how the CPU makes a decision: compare two values, then jump.
+Last time we finished the arithmetic instructions. Today we cover the basics of conditional logic in Assembly, compares and jumps.
 
 ## Condition Codes
 
-Recall the simple CPU from earlier in the course. Its ALU set two flags, Z (zero) and N (negative), and `JZ` checked Z to decide whether to skip the body of an `if`. x86-64 works the same way, with four flags instead of two. Each flag is one bit in the **FLAGS** register. The ASM Visualizer calls it RFLAG and lists the flags that are set by name.
+Recall from CPU architecture that the ALU maintains some special bits called flags. x86-64 maintains four flags, each flag is one bit in the **FLAGS** register. The ASM Visualizer calls it RFLAG and lists the flags that are set by name.
 
 | Flag | Set to 1 when the result... |
 |---|---|
-| ZF | is zero |
-| SF | is negative (its sign bit is 1) |
-| OF | overflowed as a signed number |
-| CF | overflowed as an unsigned number |
+| ZF (zero flag)| is zero |
+| SF (sign flag)| is negative (its sign bit is 1) |
+| OF (overflow flag)| overflowed as a signed number |
+| CF (carry-out flag)| overflowed as an unsigned number |
 
-The arithmetic and bitwise instructions from last time (`add`, `sub`, `neg`, `and`, ...) all set the flags. `mov`, `lea`, `push`, and `pop` don't, just like `LOD` didn't change the flags on the simple CPU.
+The arithmetic and bitwise instructions we have seen so far (`add`, `sub`, `neg`, `and`, ...) all set the flags on every operation. `mov`, `lea`, `push`, and `pop` don't.
 
 ### OF and CF Are the Overflow Rules
 
-Earlier in the course we saw that overflow has two rules, because the seam is in a different place for signed and unsigned numbers. OF and CF are those two rules:
+Earlier in the course we saw that overflow has different rules for signed an unsigned numbers:
 
 - **CF is the unsigned rule.** It is 1 if the result wrapped around past 0. For a subtraction `D - S`, that happens when D is smaller than S as unsigned numbers.
 - **OF is the signed rule.** Rewrite a subtraction as an addition, then check the signs: if the two operands have the same sign and the result's sign is different, OF is 1.
 
-The CPU doesn't know whether the bits are meant to be signed or unsigned, so it checks both every time. The instruction that reads the flags picks the one it needs.
+The CPU doesn't know whether the operands are meant to be signed or unsigned, so it sets both flags on over operation. The programmer (you) needs to determine which flag to read.
 
 ## cmp and test
 
@@ -40,7 +40,7 @@ The CPU doesn't know whether the bits are meant to be signed or unsigned, so it 
 
 - **`cmp` is a `sub` and `test` is an `and`, but the result is thrown away.** D doesn't change. Only the flags do.
 - **`cmp S, D` is D minus S**, the same order as `sub`. `cmp %rcx,%rax` compares `%rax` with `%rcx`.
-- **The usual operand rules apply.** At most one operand can be memory, and a constant can only be S: `cmp $5,%rax` works, `cmp %rax,$5` doesn't. A constant and a memory operand need a suffix: `cmpl $0x0,-0x4(%rbp)`.
+- **The usual operand rules apply.** At most one operand can be memory, and a constant can only be S: `cmp $5,%rax` works, `cmp %rax,$5` doesn't.
 - **`test %rax,%rax` asks "is it zero? is it negative?"** `x & x` is just `x`, so ZF and SF describe `%rax` itself. It does the same job as `cmp $0,%rax` in fewer bytes, so you will see it a lot.
 - **`test` with a mask checks bits.** `test $1,%rax` sets ZF when `%rax` is even.
 
