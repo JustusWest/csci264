@@ -22,7 +22,7 @@ Recall from CPU architecture that the ALU maintains some special bits called fla
 
 The arithmetic and bitwise instructions we have seen so far (`add`, `sub`, `neg`, `and`, ...) all set the flags on every operation. `mov`, `lea`, `push`, and `pop` don't.
 
-### OF and CF Are the Overflow Rules
+### OF and CF - Overflow Rules
 
 Earlier in the course we saw that overflow has different rules for signed an unsigned numbers:
 
@@ -47,31 +47,31 @@ The CPU doesn't know whether the operands are meant to be signed or unsigned, so
 <div class="board-example" markdown="1">
 <p class="board-title">Example 1 — flags after cmp</p>
 
-Pretend registers are 4 bits, like when we first did overflow. For each `cmp S, D`, compute `D - S` and the four flags:
+Suppose we have 4 bit registers. For each `cmp S, D`, compute `D - S` and the four flags:
 
 <div class="board-setup" markdown="1">
 
-| D | S | D - S | ZF | SF | OF | CF |
-|---|---|---|---|---|---|---|
-| 5 | 5 | ? | ? | ? | ? | ? |
-| 3 | 5 | ? | ? | ? | ? | ? |
-| -1 | 1 | ? | ? | ? | ? | ? |
-| 4 | -5 | ? | ? | ? | ? | ? |
+| D | S | D - S | ZF | SF | OF | CF | D < S? |
+|---|---|---|---|---|---|---|---|
+| `0101` (5) | `0101` (5) | ? | ? | ? | ? | ? | ? |
+| `0011` (3) | `0101` (5) | ? | ? | ? | ? | ? | ? |
+| `1111` (-1) | `0001` (1) | ? | ? | ? | ? | ? | ? |
+| `0100` (4) | `1011` (-5) | ? | ? | ? | ? | ? | ? |
 
 </div>
 
 <details class="board-answer" markdown="1">
 <summary>Answers</summary>
 
-| D | S | D - S | ZF | SF | OF | CF |
-|---|---|---|---|---|---|---|
-| 5 | 5 | `0000` (0) | 1 | 0 | 0 | 0 |
-| 3 | 5 | `1110` (-2) | 0 | 1 | 0 | 1 |
-| -1 | 1 | `1110` (-2) | 0 | 1 | 0 | 0 |
-| 4 | -5 | `1001` (-7) | 0 | 1 | 1 | 1 |
+| D | S | D - S | ZF | SF | OF | CF | D < S? |
+|---|---|---|---|---|---|---|---|
+| `0101` (5) | `0101` (5) | `0000` (0) | 1 | 0 | 0 | 0 | no |
+| `0011` (3) | `0101` (5) | `1110` (-2) | 0 | 1 | 0 | 1 | yes |
+| `1111` (-1) | `0001` (1) | `1110` (-2) | 0 | 1 | 0 | 0 | yes |
+| `0100` (4) | `1011` (-5) | `1001` (-7) | 0 | 1 | 1 | 1 | no |
 
-- **Row 3:** as unsigned numbers, D is `1111` = 15 and S is 1. 15 - 1 doesn't wrap, so CF is 0. Signed, D is less than S. Unsigned, D is greater. Same bits, different answers.
-- **Row 4:** 4 - (-5) is 9, which doesn't fit in 4 bits, so the result looks negative. SF says "less," but 4 is not less than -5. OF is 1 to say SF is wrong.
+- **Row 3:** as unsigned numbers, D is `1111` = 15 and S is 1. 15 - 1 doesn't wrap, so CF is 0. Signed, D is less than S. Unsigned, D is greater.
+- **Row 4:** 4 - (-5) is 9, which doesn't fit in 4 bits, so the result looks negative. SF says "less," but 4 is not less than -5. OF is 1 to indicate SF is wrong.
 
 </details>
 
@@ -91,7 +91,6 @@ L is a **label**: a name followed by a colon, marking the next instruction. Labe
 
 - In `gcc -S` output, labels inside a function look like `.L2:`.
 - In Compiler Explorer and `objdump`, the label is replaced by an address: `jle 1a <getSmallest+0x1a>` jumps to address `1a`, which is 0x1a bytes from the start of `getSmallest`.
-- The book's listings come from GDB, which writes the same thing as `jle 0x4005b0 <getSmallest+26>`, with the offset in decimal.
 - In the ASM Visualizer you write the labels yourself, using any name, like `done:`.
 
 ### Conditional Jumps
@@ -109,11 +108,9 @@ A **conditional jump** checks the flags. If its condition is true it jumps. If n
 | `jl` | `jb` | less (<) |
 | `jle` | `jbe` | less or equal (<=) |
 
-Don't memorize the table. Sound out the letters: **j** jump, **n** not, **e** equal, **g**/**l** greater/less (signed), **a**/**b** above/below (unsigned). So `jge` is "jump if greater or equal," and its other name `jnl` is "jump if not less."
+Jumps check the flags to determine what to do, so we use `cmp` before a jump to set the flags.
 
-- **Read `cmp S, D` followed by `jX L` as "jump to L if D X S."** `cmp %rcx,%rax` then `jg L` jumps if `%rax > %rcx`. It reads backwards, the same as `sub`.
-- **Assembly has no types, but the jump shows the type.** Greater and less mean the C variables were signed. Above and below mean they were unsigned. This is the same as `sar` and `shr` from last time.
-- **You don't need to know which flags each jump checks.** For the curious: `jl` jumps when SF and OF are different, and `jb` jumps when CF is 1.
+**Read `cmp S, D` followed by `jX L` as "jump to L if D X S."** `cmp %rcx,%rax` then `jg L` jumps if `%rax > %rcx`. It reads backwards, the same as `sub`.
 
 <div class="board-example" markdown="1">
 <p class="board-title">Example 2 — which jumps are taken?</p>
@@ -169,46 +166,12 @@ below:
 
 </details>
 
-## goto
-
-C has its own jump: **`goto`**. `goto done;` jumps to the line labeled `done:`. Here is the book's `getSmallest` written both ways:
-
-```c
-int getSmallest(int x, int y) {
-    int smallest;
-    if (x > y) {
-        smallest = y;
-    }
-    else {
-        smallest = x;
-    }
-    return smallest;
-}
-```
-
-```c
-int getSmallest(int x, int y) {
-    int smallest;
-    if (x <= y) {
-        goto else_statement;
-    }
-    smallest = y;
-    goto done;
-else_statement:
-    smallest = x;
-done:
-    return smallest;
-}
-```
-
-- **Don't write `goto` in your own code.** It makes code hard to follow. Edsger Dijkstra's 1968 letter *Go To Statement Considered Harmful* is the famous argument against it.
-- **It is useful for reading assembly.** `goto` is `jmp`, and `if (...) goto` is a `cmp` followed by a conditional jump. `gcc` rewrites `if`s and loops into this form before it writes the assembly.
-
-Notice that the `goto` version tests `x <= y`, the opposite of the original. Next time we'll see why the compiler does that.
-
 ## Try It
 
-`x` is in `%rcx` and `y` is in `%rdx`:
+Assume `x` is in `%rcx` and `y` is in `%rdx`. Write a program that puts the larger of the two in `%rax`.
+
+<details class="code-example" markdown="1">
+<summary>Show answers</summary>
 
 ```text
 mov %rcx, %rax
@@ -217,32 +180,10 @@ jge done
 mov %rdx, %rax
 done:
 ```
-
-1. Predict what is in `%rax` at the end for each test, then check in the [ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64/mov%20%25rcx%2C%20%25rax%0Acmp%20%25rdx%2C%20%25rcx%0Ajge%20done%0Amov%20%25rdx%2C%20%25rax%0Adone%3A/0/0/0/0/0/3/8), which starts with the first test:
-    - `x` = 3, `y` = 8
-    - `x` = -2, `y` = -7
-    - `x` = -1, `y` = 1
-2. In a few words, what does this code compute?
-3. Change `jge` to `jae`. Which test gives a different answer, and why?
-
-<details class="code-example" markdown="1">
-<summary>Show answers</summary>
-
-1. `%rax` ends at 8, then -2, then 1.
-2. The larger of `x` and `y`. `%rax` starts as `x`. If `x >= y`, the jump skips the line that replaces it with `y`.
-3. The last test. With `jae`, `x` = -1 is compared as an unsigned number, the largest one there is, so the jump is taken and `%rax` ends at -1. The other two tests have the same answer either way. Picking the wrong set of jumps is an easy mistake to make, and only some tests catch it.
-
-[Open the jae version in the ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64/mov%20%25rcx%2C%20%25rax%0Acmp%20%25rdx%2C%20%25rcx%0Ajae%20done%0Amov%20%25rdx%2C%20%25rax%0Adone%3A/0/0/0/0/0/-1/1)
+[ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64/mov%20%25rcx%2C%20%25rax%0Acmp%20%25rdx%2C%20%25rcx%0Ajge%20done%0Amov%20%25rdx%2C%20%25rax%0Adone%3A/0/0/0/0/0/3/8)
 
 </details>
 
-{% comment %}
-INSTRUCTOR: work Example 1 on the board in 4 bits. Have them do the D - S column first, then the flags. Row 3 is the signed/unsigned punchline; row 4 is why "SF means less" (what the book says) is only true when OF is 0.
-INSTRUCTOR: for Example 2, ask for a show of hands on each cell of the last row before revealing. Most will say ja is not taken.
-INSTRUCTOR: at step 0 the visualizer shows ZF set. That comes from the hidden setup code; ignore it. RFLAG only names ZF, SF, OF, and CF, even when the hex value has other bits set.
-INSTRUCTOR: all three visualizer programs were run on the visualizer and give the results shown. The links were built from the Arithmetic Mode URL format; click through them before class.
-INSTRUCTOR: the Try It is the pattern next week's lab needs: compare, then skip a line. Question 3 is the signed vs. unsigned trap that a negative side length will catch in that lab.
-{% endcomment %}
 
 For some practice, try the [Exercises from the book for §7.4](https://diveintosystems.org/exercises/section-7_4.html).
 
