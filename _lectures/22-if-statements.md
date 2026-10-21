@@ -92,7 +92,7 @@ Jumps are a problem for a pipeline. Recall from earlier in the course that the C
 |---|---|
 | `cmov{suffix} S, D` | `if (condition) D = S` |
 
-The suffixes are the same as the jumps: `cmove`, `cmovne`, `cmovs`, `cmovns`, `cmovg`, `cmovl`, `cmova`, `cmovb`, and so on. We have already seen one: `div4` used `cmovs`, "move if negative."
+The suffixes are the same as the jumps: `cmove`, `cmovne`, `cmovs`, `cmovns`, `cmovg`, `cmovl`, `cmova`, `cmovb`, and so on.
 
 Let's rewrite `getSmallest` in a [blank ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64), this time with no jumps. Put `y` in `%rax` first, then replace it with `x` if `x <= y`.
 
@@ -124,6 +124,8 @@ C has an operator that does the same thing. The **ternary operator** `condition 
 ```c
 result = condition ? a : b;
 ```
+
+It is equivalent to:
 
 ```c
 if (condition) {
@@ -265,17 +267,5 @@ mov  -8(%rbp), %rax
 3. With `x` = -5, `jns` falls through, `negq` runs, and `%rax` ends at 5. With a positive `x`, `jns` jumps over the `negq`. Here is [the `-O1` version in the ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64/mov%20%25rcx%2C%20%25rax%0Aneg%20%25rax%0Acmovs%20%25rcx%2C%20%25rax/0/0/0/0/0/-5/0), with `x` in `%rcx`.
 
 </details>
-
-{% comment %}
-INSTRUCTOR: live code getSmallest in the blank visualizer from the C. Before typing the jump, ask which one they expect for x > y. Most will say jg; work out together that the jump has to skip the then part, so it is jle. That is the setup for "the compiler flips the test."
-INSTRUCTOR: before running, draw an arrow from each jump to its label (jle -> assign_x, jmp -> done). Example 1 is then just following arrows. Run it with x = 8, y = 3 first, then change the stack values to x = 3, y = 8.
-INSTRUCTOR: for Example 2, have pairs annotate on paper first. If someone flips the test back to x > y and swaps the branches, that is the other correct answer; put both on the board.
-INSTRUCTOR: goto is not covered in this course. The book translates through a goto form (Tables 43-45); these notes go straight from annotated assembly to if/else instead.
-INSTRUCTOR: live code getSmallest with cmovle right after the cmov table, before the ternary. Run it with x = 8, y = 3, then x = 3, y = 8, and point out that the arrows never skip a line.
-INSTRUCTOR: before showing the -O1 getSmallest, ask whether they think the compiler will keep the jumps. The ternary version already uses cmovle at -O0.
-INSTRUCTOR: the listings in these notes come from gcc 13 at -O0 and -O1 with -fcf-protection=none (no endbr64). Compiler Explorer's x86-64 gcc 16.2 gave identical output for all of them.
-INSTRUCTOR: all visualizer programs were run on the visualizer and give the results shown. The links were built from the Arithmetic Mode URL format; click through them before class.
-INSTRUCTOR: the Try It is A6/A8-style reverse engineering. Give them five minutes in pairs before opening the answers.
-{% endcomment %}
 
 Next time we look at loops, which are jumps backward.
