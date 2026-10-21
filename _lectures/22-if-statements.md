@@ -5,13 +5,13 @@ published: true
 
 [*Reading: Dive into Systems §7.4.2*](https://diveintosystems.org/book/C7-x86_64/if_statements.html)
 
-To follow along with the examples, [set up Compiler Explorer]({{ "/godbolt/" | relative_url }}). To run assembly, use the [ASM Visualizer]({{ "/asm-visualizer/" | relative_url }}). In class we write the code live in a [blank ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64).
+To follow along with the examples, [set up Compiler Explorer]({{ "/godbolt/" | relative_url }}). To run assembly, use the [ASM Visualizer]({{ "/asm-visualizer/" | relative_url }}).
 
-Last time we saw the condition code flags, `cmp` and `test`, the jump instructions, and `goto`. Today we put them together to read an `if`/`else` in assembly and translate it back to C. Then we look at `cmov`, which handles some `if`s without jumping at all.
+Last time we saw the condition code flags, `cmp` and `test`, and the jump instructions. Today we put them together to read an `if`/`else` in assembly and translate it back to C. Then we look at `cmov`, which handles some `if`s without jumping at all.
 
 ## getSmallest in Assembly
 
-Here is the book's `getSmallest` ([open it in Compiler Explorer](https://godbolt.org/clientstate/eyJzZXNzaW9ucyI6W3siaWQiOjEsImxhbmd1YWdlIjoiYyIsInNvdXJjZSI6ImludCBnZXRTbWFsbGVzdChpbnQgeCwgaW50IHkpIHtcbiAgICBpbnQgc21hbGxlc3Q7XG4gICAgaWYgKHggPiB5KSB7XG4gICAgICAgIHNtYWxsZXN0ID0geTtcbiAgICB9XG4gICAgZWxzZSB7XG4gICAgICAgIHNtYWxsZXN0ID0geDtcbiAgICB9XG4gICAgcmV0dXJuIHNtYWxsZXN0O1xufVxuIiwiY29tcGlsZXJzIjpbeyJpZCI6ImNnMTYyIiwib3B0aW9ucyI6IiIsImZpbHRlcnMiOnsiYmluYXJ5T2JqZWN0Ijp0cnVlLCJpbnRlbCI6ZmFsc2UsImxhYmVscyI6dHJ1ZSwibGlicmFyeUNvZGUiOnRydWUsImRpcmVjdGl2ZXMiOnRydWUsImNvbW1lbnRPbmx5Ijp0cnVlLCJkZW1hbmdsZSI6dHJ1ZX19XX1dfQ%3D%3D)):
+Here is the book's `getSmallest`:
 
 ```c
 int getSmallest(int x, int y) {
@@ -26,182 +26,63 @@ int getSmallest(int x, int y) {
 }
 ```
 
-```text
-getSmallest:
-   0:  push   %rbp
-   1:  mov    %rsp,%rbp
-   4:  mov    %edi,-0x14(%rbp)
-   7:  mov    %esi,-0x18(%rbp)
-   a:  mov    -0x14(%rbp),%eax
-   d:  cmp    -0x18(%rbp),%eax
-  10:  jle    1a <getSmallest+0x1a>
-  12:  mov    -0x18(%rbp),%eax
-  15:  mov    %eax,-0x4(%rbp)
-  18:  jmp    20 <getSmallest+0x20>
-  1a:  mov    -0x14(%rbp),%eax
-  1d:  mov    %eax,-0x4(%rbp)
-  20:  mov    -0x4(%rbp),%eax
-  23:  pop    %rbp
-  24:  ret
-```
-
-- **`x` and `y` arrive in `%edi` and `%esi`.** The first two parameters of a function always come in these registers. We'll see why when we get to functions. The function copies them to the stack: `x` at `-0x14(%rbp)` and `y` at `-0x18(%rbp)`. `smallest` is at `-0x4(%rbp)`.
-- **`cmp -0x18(%rbp),%eax` compares `x` with `y`.** `jle` jumps to `1a` if `x <= y`.
-- **`jmp 20` skips over the code at `1a`.** Without it, both assignments would run.
-
-The book's listing is "lightly edited." It leaves out the store to `smallest` at `-0x4(%rbp)` and keeps the result in `%eax` instead.
-
-<div class="board-example" markdown="1">
-<p class="board-title">Example 1 — both paths</p>
-
-Trace `getSmallest` for each call. Starting at `10`, which addresses run, and what does it return?
-
-<div class="board-setup" markdown="1">
-
-| Call | Addresses that run | Returns |
-|---|---|---|
-| `getSmallest(3, 8)` | ? | ? |
-| `getSmallest(8, 3)` | ? | ? |
-
-</div>
-
-<details class="board-answer" markdown="1">
-<summary>Answers</summary>
-
-| Call | Addresses that run | Returns |
-|---|---|---|
-| `getSmallest(3, 8)` | `10` (jumps), `1a`, `1d`, `20`, `23`, `24` | 3 |
-| `getSmallest(8, 3)` | `10` (falls through), `12`, `15`, `18` (jumps), `20`, `23`, `24` | 3 |
-
-Each call runs exactly one of the two blocks, `12`–`18` or `1a`–`1d`. That is an `if`/`else`.
-
-</details>
-
-</div>
-
-Let's run it in the ASM Visualizer. In Arithmetic Mode the variables start on the stack, so `x` is at `-8(%rbp)` and `y` is at `-16(%rbp)`, and the result is left in `%rax`.
+Let's write it ourselves in [ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64). In Arithmetic Mode the variables start on the stack, so we'll put `x` at `-8(%rbp)` and `y` at `-16(%rbp)`, and keep `smallest` in `%rax`.
 
 <details class="code-example" markdown="1">
 <summary>Show code: getSmallest</summary>
 
-Set the `%rbp - 8` stack slot to 8 and the `%rbp - 16` slot to 3.
+Set the `%rbp - 8` stack slot (`x`) to 8 and the `%rbp - 16` slot (`y`) to 3.
 
 ```text
 mov -8(%rbp), %rax      # copy x to %rax
 cmp -16(%rbp), %rax     # compare x with y
 jle assign_x            # if x <= y, jump to assign_x
 mov -16(%rbp), %rax     # smallest = y
-jmp done
+jmp done                # skip over assign_x
 assign_x:
 mov -8(%rbp), %rax      # smallest = x
 done:
 ```
 
-`%rax` ends at 3. Run it again with `x` = 3 and `y` = 8, and watch which lines the arrows skip.
-
 [Open the finished version in the ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64/mov%20-8%28%25rbp%29%2C%20%25rax%0Acmp%20-16%28%25rbp%29%2C%20%25rax%0Ajle%20assign_x%0Amov%20-16%28%25rbp%29%2C%20%25rax%0Ajmp%20done%0Aassign_x%3A%0Amov%20-8%28%25rbp%29%2C%20%25rax%0Adone%3A/0/0/3/8/0/0/0)
 
 </details>
 
-## From Assembly to C
-
-To turn assembly back into C, go in three steps:
-
-1. **Annotate.** Write C-like pseudocode next to each line, as we have been doing.
-2. **Write the `goto` form.** Every jump becomes one line of C. A `cmp` and a conditional jump become `if (...) goto ...;`, and a `jmp` becomes `goto ...;`. Every jump target gets a label.
-3. **Rewrite it without `goto`.** The `goto`s that jump over blocks of code become an `if` or an `if`/`else`.
+- **`cmp -16(%rbp), %rax` compares `x` with `y`.** `jle` jumps to `assign_x` if `x <= y`.
+- **The C says `x > y`, but the jump is `jle`.** The jump skips the code for `x > y`, so it has to happen when `x > y` is false.
+- **`jmp done` skips over `assign_x`.** Without it, both assignments would run.
 
 <div class="board-example" markdown="1">
-<p class="board-title">Example 2 — getSmallest back to C</p>
+<p class="board-title">Example 1 — both paths</p>
 
-Write the `goto` form of `getSmallest` from its assembly, one piece at a time. Then rewrite it as an `if`/`else`.
+The visualizer numbers our lines starting at 20, so `mov -8(%rbp), %rax` is line 20 and `done:` is line 27. For each call, which lines run, and what is in `%rax` at the end?
 
 <div class="board-setup" markdown="1">
 
-| Assembly | `goto` form |
-|---|---|
-| `d`–`10`: `cmp`, `jle 1a` | ? |
-| `12`–`15` | ? |
-| `18`: `jmp 20` | ? |
-| `1a`–`1d` | ? |
-| `20`–`24` | ? |
+| Call | Lines that run | `%rax` |
+|---|---|---|
+| `getSmallest(8, 3)` | ? | ? |
+| `getSmallest(3, 8)` | ? | ? |
 
 </div>
 
 <details class="board-answer" markdown="1">
 <summary>Answers</summary>
 
-| Assembly | `goto` form |
-|---|---|
-| `d`–`10`: `cmp`, `jle 1a` | `if (x <= y) goto assign_x;` |
-| `12`–`15` | `smallest = y;` |
-| `18`: `jmp 20` | `goto done;` |
-| `1a`–`1d` | `assign_x:`<br>`smallest = x;` |
-| `20`–`24` | `done:`<br>`return smallest;` |
+| Call | Lines that run | `%rax` |
+|---|---|---|
+| `getSmallest(8, 3)` | 20, 21, 22 (falls through), 23, 24 (jumps) | 3 |
+| `getSmallest(3, 8)` | 20, 21, 22 (jumps), 26 | 3 |
 
-All together, then without `goto`:
-
-```c
-int getSmallest(int x, int y) {
-    int smallest;
-    if (x <= y) {           // cmp, jle
-        goto assign_x;
-    }
-    smallest = y;           // 12, 15
-    goto done;              // 18: jmp
-assign_x:
-    smallest = x;           // 1a, 1d
-done:
-    return smallest;        // 20
-}
-```
-
-```c
-int getSmallest(int x, int y) {
-    int smallest;
-    if (x <= y) {
-        smallest = x;
-    }
-    else {
-        smallest = y;
-    }
-    return smallest;
-}
-```
+Each call runs exactly one of the two assignments, line 23 or line 26. That is an `if`/`else`.
 
 </details>
 
 </div>
 
-That isn't quite the C we started with. The original tested `x > y`; ours tests `x <= y` and has the two branches swapped. Both do the same thing, and both compile to the same assembly.
+Check both in the visualizer and watch which lines the arrows skip.
 
-### The Compiler Flips the Test
-
-Every `if`/`else` turns into the same `goto` form:
-
-```c
-if (condition) {
-    then_statement;
-}
-else {
-    else_statement;
-}
-```
-
-```c
-if (!condition) {
-    goto else;
-}
-then_statement;
-goto done;
-else:
-    else_statement;
-done:
-```
-
-- **The jump happens when the condition is false.** It jumps over the `then` part. So the jump in the assembly is usually the opposite of the test in the C: `>` becomes `jle`, `==` becomes `jne`, `<` becomes `jge`.
-- **When you translate back, you can keep it or flip it.** Keep the test and the `then` part is the code at the jump's target, as in Example 2. Flip it and the `then` part is the code that falls through. Either answer is correct.
-- **An `if` with no `else` has only one jump**, over the body: `if (!condition) goto done; then_statement; done:`. This is the `JZ ENDIF` demo on the simple CPU from earlier in the course.
+The compiler's version ([open it in Compiler Explorer](https://godbolt.org/clientstate/eyJzZXNzaW9ucyI6W3siaWQiOjEsImxhbmd1YWdlIjoiYyIsInNvdXJjZSI6ImludCBnZXRTbWFsbGVzdChpbnQgeCwgaW50IHkpIHtcbiAgICBpbnQgc21hbGxlc3Q7XG4gICAgaWYgKHggPiB5KSB7XG4gICAgICAgIHNtYWxsZXN0ID0geTtcbiAgICB9XG4gICAgZWxzZSB7XG4gICAgICAgIHNtYWxsZXN0ID0geDtcbiAgICB9XG4gICAgcmV0dXJuIHNtYWxsZXN0O1xufVxuIiwiY29tcGlsZXJzIjpbeyJpZCI6ImNnMTYyIiwib3B0aW9ucyI6IiIsImZpbHRlcnMiOnsiYmluYXJ5T2JqZWN0Ijp0cnVlLCJpbnRlbCI6ZmFsc2UsImxhYmVscyI6dHJ1ZSwibGlicmFyeUNvZGUiOnRydWUsImRpcmVjdGl2ZXMiOnRydWUsImNvbW1lbnRPbmx5Ijp0cnVlLCJkZW1hbmdsZSI6dHJ1ZX19XX1dfQ%3D%3D)) has the same `cmp`, `jle`, and `jmp`. It also stores `smallest` on the stack, and it shows addresses where we wrote labels.
 
 ## Conditional Moves
 
@@ -209,11 +90,51 @@ Jumps are a problem for a pipeline. Recall from earlier in the course that the C
 
 | Instruction | In C |
 |---|---|
-| `cmovX S, D` | `if (condition) D = S` |
+| `cmov{suffix} S, D` | `if (condition) D = S` |
 
 The suffixes are the same as the jumps: `cmove`, `cmovne`, `cmovs`, `cmovns`, `cmovg`, `cmovl`, `cmova`, `cmovb`, and so on. We have already seen one: `div4` used `cmovs`, "move if negative."
 
-C's ternary operator, `result = condition ? a : b;`, is an `if`/`else` that picks a value, which is exactly what `cmov` does. Here is `getSmallest` written with one ([open both versions in Compiler Explorer](https://godbolt.org/clientstate/eyJzZXNzaW9ucyI6W3siaWQiOjEsImxhbmd1YWdlIjoiYyIsInNvdXJjZSI6ImludCBnZXRTbWFsbGVzdChpbnQgeCwgaW50IHkpIHtcbiAgICBpbnQgc21hbGxlc3Q7XG4gICAgaWYgKHggPiB5KSB7XG4gICAgICAgIHNtYWxsZXN0ID0geTtcbiAgICB9XG4gICAgZWxzZSB7XG4gICAgICAgIHNtYWxsZXN0ID0geDtcbiAgICB9XG4gICAgcmV0dXJuIHNtYWxsZXN0O1xufVxuXG5pbnQgZ2V0U21hbGxlc3RfY21vdihpbnQgeCwgaW50IHkpIHtcbiAgICByZXR1cm4geCA%2BIHkgPyB5IDogeDtcbn1cbiIsImNvbXBpbGVycyI6W3siaWQiOiJjZzE2MiIsIm9wdGlvbnMiOiIiLCJmaWx0ZXJzIjp7ImJpbmFyeU9iamVjdCI6dHJ1ZSwiaW50ZWwiOmZhbHNlLCJsYWJlbHMiOnRydWUsImxpYnJhcnlDb2RlIjp0cnVlLCJkaXJlY3RpdmVzIjp0cnVlLCJjb21tZW50T25seSI6dHJ1ZSwiZGVtYW5nbGUiOnRydWV9fV19XX0%3D)):
+Let's rewrite `getSmallest` in a [blank ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64), this time with no jumps. Put `y` in `%rax` first, then replace it with `x` if `x <= y`.
+
+<details class="code-example" markdown="1">
+<summary>Show code: getSmallest with cmov</summary>
+
+Set the `%rbp - 8` stack slot (`x`) to 8 and the `%rbp - 16` slot (`y`) to 3.
+
+```text
+mov -8(%rbp), %rdx      # %rdx = x
+mov -16(%rbp), %rax     # %rax = y
+cmp %rax, %rdx          # compare x with y
+cmovle %rdx, %rax       # if x <= y, %rax = x
+```
+
+`%rax` ends at 3. Try `x` = 3 and `y` = 8 too.
+
+[Open the finished version in the ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64/mov%20-8%28%25rbp%29%2C%20%25rdx%0Amov%20-16%28%25rbp%29%2C%20%25rax%0Acmp%20%25rax%2C%20%25rdx%0Acmovle%20%25rdx%2C%20%25rax/0/0/3/8/0/0/0)
+
+</details>
+
+- **No jumps and no labels.** Every line runs every time. The only thing that depends on `x` and `y` is whether `cmovle` copies.
+- **Both answers are ready before the test.** `x` is in `%rdx` and `y` is in `%rax`. `cmovle` just picks one.
+
+### The Ternary Operator
+
+C has an operator that does the same thing. The **ternary operator** `condition ? a : b` is `a` if the condition is true and `b` if it is false. It is an `if`/`else` that picks a value:
+
+```c
+result = condition ? a : b;
+```
+
+```c
+if (condition) {
+    result = a;
+}
+else {
+    result = b;
+}
+```
+
+Here is `getSmallest` written with one ([open both versions in Compiler Explorer](https://godbolt.org/clientstate/eyJzZXNzaW9ucyI6W3siaWQiOjEsImxhbmd1YWdlIjoiYyIsInNvdXJjZSI6ImludCBnZXRTbWFsbGVzdChpbnQgeCwgaW50IHkpIHtcbiAgICBpbnQgc21hbGxlc3Q7XG4gICAgaWYgKHggPiB5KSB7XG4gICAgICAgIHNtYWxsZXN0ID0geTtcbiAgICB9XG4gICAgZWxzZSB7XG4gICAgICAgIHNtYWxsZXN0ID0geDtcbiAgICB9XG4gICAgcmV0dXJuIHNtYWxsZXN0O1xufVxuXG5pbnQgZ2V0U21hbGxlc3RfY21vdihpbnQgeCwgaW50IHkpIHtcbiAgICByZXR1cm4geCA%2BIHkgPyB5IDogeDtcbn1cbiIsImNvbXBpbGVycyI6W3siaWQiOiJjZzE2MiIsIm9wdGlvbnMiOiIiLCJmaWx0ZXJzIjp7ImJpbmFyeU9iamVjdCI6dHJ1ZSwiaW50ZWwiOmZhbHNlLCJsYWJlbHMiOnRydWUsImxpYnJhcnlDb2RlIjp0cnVlLCJkaXJlY3RpdmVzIjp0cnVlLCJjb21tZW50T25seSI6dHJ1ZSwiZGVtYW5nbGUiOnRydWV9fV19XX0%3D)):
 
 ```c
 int getSmallest_cmov(int x, int y) {
@@ -235,8 +156,10 @@ getSmallest_cmov:
   16:  ret
 ```
 
-- **No jumps.** `y` goes into `%eax` first. If `x <= y`, `cmovle` replaces it with `x`. Every instruction runs every time.
-- **The compiler decides, not you.** With `-O1` ([open it with `-O1`](https://godbolt.org/clientstate/eyJzZXNzaW9ucyI6W3siaWQiOjEsImxhbmd1YWdlIjoiYyIsInNvdXJjZSI6ImludCBnZXRTbWFsbGVzdChpbnQgeCwgaW50IHkpIHtcbiAgICBpbnQgc21hbGxlc3Q7XG4gICAgaWYgKHggPiB5KSB7XG4gICAgICAgIHNtYWxsZXN0ID0geTtcbiAgICB9XG4gICAgZWxzZSB7XG4gICAgICAgIHNtYWxsZXN0ID0geDtcbiAgICB9XG4gICAgcmV0dXJuIHNtYWxsZXN0O1xufVxuXG5pbnQgZ2V0U21hbGxlc3RfY21vdihpbnQgeCwgaW50IHkpIHtcbiAgICByZXR1cm4geCA%2BIHkgPyB5IDogeDtcbn1cbiIsImNvbXBpbGVycyI6W3siaWQiOiJjZzE2MiIsIm9wdGlvbnMiOiItTzEiLCJmaWx0ZXJzIjp7ImJpbmFyeU9iamVjdCI6dHJ1ZSwiaW50ZWwiOmZhbHNlLCJsYWJlbHMiOnRydWUsImxpYnJhcnlDb2RlIjp0cnVlLCJkaXJlY3RpdmVzIjp0cnVlLCJjb21tZW50T25seSI6dHJ1ZSwiZGVtYW5nbGUiOnRydWV9fV19XX0%3D)), the original `getSmallest` with its `if`/`else` compiles to the exact same code as the ternary version:
+- **It is the code we just wrote.** The instructions at `a` through `12` are our four lines, with `%edx` and `%eax` in place of `%rdx` and `%rax`. The rest is the stack frame and copying the parameters to the stack.
+- **The compiler uses `cmov` here even without optimization.** A ternary is just choosing between two values, so it is a natural fit.
+
+**The compiler decides, not you.** With `-O1` ([open it with `-O1`](https://godbolt.org/clientstate/eyJzZXNzaW9ucyI6W3siaWQiOjEsImxhbmd1YWdlIjoiYyIsInNvdXJjZSI6ImludCBnZXRTbWFsbGVzdChpbnQgeCwgaW50IHkpIHtcbiAgICBpbnQgc21hbGxlc3Q7XG4gICAgaWYgKHggPiB5KSB7XG4gICAgICAgIHNtYWxsZXN0ID0geTtcbiAgICB9XG4gICAgZWxzZSB7XG4gICAgICAgIHNtYWxsZXN0ID0geDtcbiAgICB9XG4gICAgcmV0dXJuIHNtYWxsZXN0O1xufVxuXG5pbnQgZ2V0U21hbGxlc3RfY21vdihpbnQgeCwgaW50IHkpIHtcbiAgICByZXR1cm4geCA%2BIHkgPyB5IDogeDtcbn1cbiIsImNvbXBpbGVycyI6W3siaWQiOiJjZzE2MiIsIm9wdGlvbnMiOiItTzEiLCJmaWx0ZXJzIjp7ImJpbmFyeU9iamVjdCI6dHJ1ZSwiaW50ZWwiOmZhbHNlLCJsYWJlbHMiOnRydWUsImxpYnJhcnlDb2RlIjp0cnVlLCJkaXJlY3RpdmVzIjp0cnVlLCJjb21tZW50T25seSI6dHJ1ZSwiZGVtYW5nbGUiOnRydWV9fV19XX0%3D)), the original `getSmallest` with its `if`/`else` compiles to the exact same code as the ternary version:
 
 ```text
 getSmallest:
@@ -247,24 +170,6 @@ getSmallest:
 ```
 
 The `mov` between the `cmp` and the `cmovle` is fine, because `mov` doesn't change the flags.
-
-<details class="code-example" markdown="1">
-<summary>Show code: getSmallest with cmov</summary>
-
-Set the `%rbp - 8` stack slot (`x`) to 8 and the `%rbp - 16` slot (`y`) to 3.
-
-```text
-mov -8(%rbp), %rdx      # %rdx = x
-mov -16(%rbp), %rax     # %rax = y
-cmp %rax, %rdx          # compare x with y
-cmovle %rdx, %rax       # if x <= y, %rax = x
-```
-
-`%rax` ends at 3. Every line runs, whatever `x` and `y` are.
-
-[Open the finished version in the ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64/mov%20-8%28%25rbp%29%2C%20%25rdx%0Amov%20-16%28%25rbp%29%2C%20%25rax%0Acmp%20%25rax%2C%20%25rdx%0Acmovle%20%25rdx%2C%20%25rax/0/0/3/8/0/0/0)
-
-</details>
 
 ### When the Compiler Won't Use cmov
 
@@ -317,7 +222,7 @@ mystery:
   14:  ret
 ```
 
-1. Annotate it, write the `goto` form, then write it as plain C. What does `mystery` compute?
+1. Annotate it, then write it as C. What does `mystery` compute?
 2. Predict: with `-O1`, will the compiler use a jump or a `cmov`?
 3. Check your C by running this version in the [ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64/cmpq%20%240%2C%20-8%28%25rbp%29%0Ajns%20done%0Anegq%20-8%28%25rbp%29%0Adone%3A%0Amov%20-8%28%25rbp%29%2C%20%25rax/0/0/0/-5/0/0/0), with `x` at `-8(%rbp)`. It starts with `x` = -5. Try a positive `x` too.
 
@@ -332,18 +237,7 @@ mov  -8(%rbp), %rax
 <details class="code-example" markdown="1">
 <summary>Show answers</summary>
 
-1. `cmpl $0x0,-0x4(%rbp)` computes `x - 0`, so the flags describe `x`. `jns` jumps if `x` is not negative.
-
-    ```c
-    int mystery(int x) {
-        if (x >= 0) {
-            goto done;
-        }
-        x = -x;
-    done:
-        return x;
-    }
-    ```
+1. `cmpl $0x0,-0x4(%rbp)` computes `x - 0`, so the flags describe `x`. `jns` jumps over the `negl` if `x` is not negative, so `x = -x` only runs when `x < 0`.
 
     ```c
     int mystery(int x) {
@@ -373,9 +267,11 @@ mov  -8(%rbp), %rax
 </details>
 
 {% comment %}
-INSTRUCTOR: before showing the getSmallest assembly, ask which jump they expect for x > y. Most will say jg. The jle is the setup for "the compiler flips the test."
-INSTRUCTOR: draw an arrow from each jump to its target on the projected listing (10 -> 1a, 18 -> 20). Example 1 is then just following arrows.
-INSTRUCTOR: for Example 2, have pairs write the goto form on paper first. If someone flips the test back to x > y, that is the other correct answer; put both on the board.
+INSTRUCTOR: live code getSmallest in the blank visualizer from the C. Before typing the jump, ask which one they expect for x > y. Most will say jg; work out together that the jump has to skip the then part, so it is jle. That is the setup for "the compiler flips the test."
+INSTRUCTOR: before running, draw an arrow from each jump to its label (jle -> assign_x, jmp -> done). Example 1 is then just following arrows. Run it with x = 8, y = 3 first, then change the stack values to x = 3, y = 8.
+INSTRUCTOR: for Example 2, have pairs annotate on paper first. If someone flips the test back to x > y and swaps the branches, that is the other correct answer; put both on the board.
+INSTRUCTOR: goto is not covered in this course. The book translates through a goto form (Tables 43-45); these notes go straight from annotated assembly to if/else instead.
+INSTRUCTOR: live code getSmallest with cmovle right after the cmov table, before the ternary. Run it with x = 8, y = 3, then x = 3, y = 8, and point out that the arrows never skip a line.
 INSTRUCTOR: before showing the -O1 getSmallest, ask whether they think the compiler will keep the jumps. The ternary version already uses cmovle at -O0.
 INSTRUCTOR: the listings in these notes come from gcc 13 at -O0 and -O1 with -fcf-protection=none (no endbr64). Compiler Explorer's x86-64 gcc 16.2 gave identical output for all of them.
 INSTRUCTOR: all visualizer programs were run on the visualizer and give the results shown. The links were built from the Arithmetic Mode URL format; click through them before class.
