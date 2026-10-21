@@ -172,7 +172,40 @@ Assume `x` is in `%rcx` and `y` is in `%rdx`. Write a program that puts the larg
 
 <details class="code-example" markdown="1">
 <summary>Show answers</summary>
+First try:
+```text
+cmp %rcx, %rdx
+jl x_greater
 
+cmp %rcx, %rdx
+jg y_greater
+
+x_greater:
+mov %rcx, %rax
+
+y_greater:
+mov %rdx, %rax
+
+```
+If we jump to x_greater, the y_greater code still executes, so we need to bypass it with another label:
+```text
+cmp %rcx, %rdx
+jl x_greater
+
+cmp %rcx, %rdx
+jg y_greater
+
+x_greater:
+mov %rcx, %rax
+jmp done
+
+y_greater:
+mov %rdx, %rax
+
+done:
+```
+
+Simplify by defaulting to x, and jumping past y if x is greater. Falls back to y if x is less.
 ```text
 mov %rcx, %rax
 cmp %rdx, %rcx
