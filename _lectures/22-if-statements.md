@@ -213,33 +213,22 @@ Here is a mystery function, compiled without optimization. The C is in the answe
 
 ```text
 mystery:
-   0:  push   %rbp
-   1:  mov    %rsp,%rbp
-   4:  mov    %edi,-0x4(%rbp)
-   7:  cmpl   $0x0,-0x4(%rbp)
-   b:  jns    10 <mystery+0x10>
-   d:  negl   -0x4(%rbp)
-  10:  mov    -0x4(%rbp),%eax
-  13:  pop    %rbp
-  14:  ret
+    cmp $0, -8(%rbp)
+    jns  done
+    neg -8(%rbp)
+    done:
+    mov  -8(%rbp), %rax
 ```
 
-1. Annotate it, then write it as C. What does `mystery` compute?
-2. Predict: with `-O1`, will the compiler use a jump or a `cmov`?
-3. Check your C by running this version in the [ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64/cmpq%20%240%2C%20-8%28%25rbp%29%0Ajns%20done%0Anegq%20-8%28%25rbp%29%0Adone%3A%0Amov%20-8%28%25rbp%29%2C%20%25rax/0/0/0/-5/0/0/0), with `x` at `-8(%rbp)`. It starts with `x` = -5. Try a positive `x` too.
+1. Annotate it and try to re-write it as C. What does `mystery` compute?
+2. Predict: with `-O1` (optimization on), will the compiler use a jump or a `cmov`?
+3. Try running the Assembly in the [ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64/cmpq%20%240%2C%20-8%28%25rbp%29%0Ajns%20done%0Anegq%20-8%28%25rbp%29%0Adone%3A%0Amov%20-8%28%25rbp%29%2C%20%25rax/0/0/0/-5/0/0/0), with `x` at `-8(%rbp)`. It starts with `x` = -5. Try a positive `x` too.
 
-```text
-cmpq $0, -8(%rbp)
-jns  done
-negq -8(%rbp)
-done:
-mov  -8(%rbp), %rax
-```
 
 <details class="code-example" markdown="1">
 <summary>Show answers</summary>
 
-1. `cmpl $0x0,-0x4(%rbp)` computes `x - 0`, so the flags describe `x`. `jns` jumps over the `negl` if `x` is not negative, so `x = -x` only runs when `x < 0`.
+1. `cmp $0, -8(%rbp)` computes `x - 0`, so the flags describe `x`. `jns` jumps over the `neg` if `x` is not negative, so `x = -x` only runs when `x < 0`.
 
     ```c
     int mystery(int x) {
@@ -264,7 +253,7 @@ mov  -8(%rbp), %rax
 
     There is no `cmp`. `neg` is arithmetic, so it already set the flags.
 
-3. With `x` = -5, `jns` falls through, `negq` runs, and `%rax` ends at 5. With a positive `x`, `jns` jumps over the `negq`. Here is [the `-O1` version in the ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64/mov%20%25rcx%2C%20%25rax%0Aneg%20%25rax%0Acmovs%20%25rcx%2C%20%25rax/0/0/0/0/0/-5/0), with `x` in `%rcx`.
+3. With `x` = -5, `jns` falls through, `neg` runs, and `%rax` ends at 5. With a positive `x`, `jns` jumps over the `neg`. Here is [the `-O1` version in the ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64/mov%20%25rcx%2C%20%25rax%0Aneg%20%25rax%0Acmovs%20%25rcx%2C%20%25rax/0/0/0/0/0/-5/0), with `x` in `%rcx`.
 
 </details>
 
