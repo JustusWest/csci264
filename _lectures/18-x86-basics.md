@@ -246,9 +246,7 @@ For every memory operand, the steps are the same: compute the address, then look
 
 </div>
 
-{% comment %}
-INSTRUCTOR: put the two value tables on the board and have them fill in the Value column before showing the translations.
-{% endcomment %}
+
 
 Try these yourself. Now `%rax` is 0x100 and `%rcx` is 0x4, and memory holds 0xAB at 0x100, 0xCD at 0x104, 0xEF at 0x108, and 0x10 at 0x10c.
 
@@ -352,9 +350,7 @@ main:
 
 </details>
 
-{% comment %}
-INSTRUCTOR: before stepping into adder2, ask which register `a` will be in.
-{% endcomment %}
+
 
 Step through it with **Next** and watch the registers:
 

@@ -7,7 +7,7 @@ published: true
 
 To follow along with the examples, [set up Compiler Explorer]({{ "/godbolt/" | relative_url }}). To run assembly, use the [ASM Visualizer]({{ "/asm-visualizer/" | relative_url }}).
 
-Today we deep dive into functions in Assembly: how one function calls another, how it gets back, and how arguments and return values are passed.
+Today we look at functions in Assembly: how one function calls another, how it gets back, and how arguments and return values are passed.
 
 Three registers run a function call:
 
@@ -153,11 +153,7 @@ Here is the stack right after `mov %rdi,-0x8(%rbp)`, the deepest point. Like the
 
 `main` ends the same way, with `leave` and `ret`. `leave` sets `%rsp` to 0xd40 and pops `main`'s caller's `%rbp`, so `%rsp` ends at 0xd48. `ret` pops the return address at 0xd48, which goes back into the C library code that called `main`.
 
-{% comment %}
-INSTRUCTOR: draw the stack on the board and fill in Example 2 one row at a time. Stop before the call row and ask what %rsp and %rip will be. Stop again before ret and ask where %rip goes and how the CPU knows.
-INSTRUCTOR: the listing is real gcc 13 output (-O0 -no-pie -fcf-protection=none) for the long version of adder2, so the addresses and bytes match objdump. The only edit is call adder2 in place of call 401126 <adder2>, and the 8-byte movq joined onto one line. The stack addresses (0xd40 and down) are made up, like the book's.
-INSTRUCTOR: if time is short, stop the trace after ret and leave main's leave/ret for next time.
-{% endcomment %}
+
 
 ## Parameters and Return Values
 
@@ -216,15 +212,18 @@ There is only one set of registers, and every function uses them. So x86-64 has 
 - **Callee saved:** `%rbx`, `%rbp`, and `%r12` through `%r15`. A function that changes one must restore it before it returns. That is why every function pushes `%rbp` at the start and pops it at the end.
 - **Caller saved:** all the others, including `%rax` and the six parameter registers. Any `call` can change them. If the caller still needs a value in one, it has to save it first.
 
-This is the "callee saved" label in the register figure from earlier in the course.
 
 ## In the ASM Visualizer
 
-[Open adder2 in the ASM Visualizer](https://asm.diveintosystems.org/fullprog/x86_64/%20%20%20%20%20%20%20%20.globl%20%20main%0Aadder2%3A%0A%20%20%20%20%20%20%20%20pushq%20%20%20%25rbp%0A%20%20%20%20%20%20%20%20movq%20%20%20%20%25rsp%2C%20%25rbp%0A%20%20%20%20%20%20%20%20movq%20%20%20%20%25rdi%2C%20-8%28%25rbp%29%0A%20%20%20%20%20%20%20%20movq%20%20%20%20-8%28%25rbp%29%2C%20%25rax%0A%20%20%20%20%20%20%20%20addq%20%20%20%20%242%2C%20%25rax%0A%20%20%20%20%20%20%20%20popq%20%20%20%20%25rbp%0A%20%20%20%20%20%20%20%20ret%0A.LC0%3A%0A%20%20%20%20%20%20%20%20.string%20%22x%20is%3A%20%25ld%5Cn%22%0Amain%3A%0A%20%20%20%20%20%20%20%20pushq%20%20%20%25rbp%0A%20%20%20%20%20%20%20%20movq%20%20%20%20%25rsp%2C%20%25rbp%0A%20%20%20%20%20%20%20%20subq%20%20%20%20%2416%2C%20%25rsp%0A%20%20%20%20%20%20%20%20movq%20%20%20%20%2440%2C%20-8%28%25rbp%29%0A%20%20%20%20%20%20%20%20movq%20%20%20%20-8%28%25rbp%29%2C%20%25rax%0A%20%20%20%20%20%20%20%20movq%20%20%20%20%25rax%2C%20%25rdi%0A%20%20%20%20%20%20%20%20call%20%20%20%20adder2%0A%20%20%20%20%20%20%20%20movq%20%20%20%20%25rax%2C%20-8%28%25rbp%29%0A%20%20%20%20%20%20%20%20movq%20%20%20%20-8%28%25rbp%29%2C%20%25rax%0A%20%20%20%20%20%20%20%20movq%20%20%20%20%25rax%2C%20%25rsi%0A%20%20%20%20%20%20%20%20movq%20%20%20%20%24.LC0%2C%20%25rdi%0A%20%20%20%20%20%20%20%20movq%20%20%20%20%240%2C%20%25rax%0A%20%20%20%20%20%20%20%20call%20%20%20%20printf%0A%20%20%20%20%20%20%20%20movq%20%20%20%20%240%2C%20%25rax%0A%20%20%20%20%20%20%20%20leave%0A%20%20%20%20%20%20%20%20ret) and click **Run Code**. Step with **Next** and watch `RSP` and `RBP` in the register table, and the arrows in the Stack Content table. The addresses are different from ours, but they change by the same amounts: down 8 on `call`, down 8 on `push %rbp`, and back up 8 each on `pop` and `ret`.
+So far we've used the ASM Visualizer's Arithmetic Mode, which writes the function setup for you and hides it. **Function Mode** hides nothing. You write each function yourself, from its label to its `ret`, plus a `main` that calls them. It starts you with an empty `main` to fill in. The lines that start with `.` (`.globl`, `.type`, `.size`) are part of that starting code: they tell the assembler where each function begins and ends, and they don't run.
 
-{% comment %}
-INSTRUCTOR: check before class whether Full Program Mode shows %rip and the return address on the stack. If it does, point both out at the call step. The link was built from the Full Program Mode URL format and not opened; the code in it was assembled and run on x86-64 (it prints "x is: 42").
-{% endcomment %}
+[Open adder2 in Function Mode](https://asm.diveintosystems.org/function/x86_64/%20%20.text%0A%20%20.globl%09adder2%0A%20%20.type%09adder2%2C%20%40function%0A%0Aadder2%3A%0A%20%20push%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%0A%20%20mov%20%25rdi%2C%20-8(%25rbp)%0A%20%20mov%20-8(%25rbp)%2C%20%25rax%0A%20%20add%20%242%2C%20%25rax%0A%20%20pop%20%25rbp%0A%20%20ret%0A%20%20.size%09adder2%2C%20.-adder2%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20push%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%0A%20%20sub%20%2416%2C%20%25rsp%0A%20%20movq%20%2440%2C%20-8(%25rbp)%20%20%20%20%20%20%23%20long%20x%20%3D%2040%3B%0A%20%20mov%20-8(%25rbp)%2C%20%25rax%20%20%20%20%20%20%23%20x%20%3D%20adder2(x)%3B%0A%20%20mov%20%25rax%2C%20%25rdi%0A%20%20call%20adder2%0A%20%20mov%20%25rax%2C%20-8(%25rbp)%0A%20%20mov%20%240%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%20%20%23%20return%200%3B%0A%20%20leave%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A) and click **Run Code**. It is the code from above, without the `printf`. Step with **Next**:
+
+- **The Address column works like a listing.** The register table doesn't show `%rip`, but the orange arrow marks the next instruction, and its address is what `%rip` holds.
+- **At `call adder2`, the return address appears on the stack.** It is 0x401134, the address of the `mov` right after the `call`.
+- **`RSP` and `RBP` move by the same amounts as in our trace:** down 8 on `call`, down 8 on `push %rbp`, and back up 8 each on `pop` and `ret`. The addresses themselves are different from ours.
+
+
 
 ## Try It
 
@@ -291,9 +290,6 @@ Just before the `call`, `%rsp` is 0xd30 and `%rbp` is 0xd40. The `mov` right aft
 
 </details>
 
-{% comment %}
-INSTRUCTOR: have them work it in pairs. Common mistake: moving %rsp on the mov %rdi,-8(%rbp) line. Writing below %rbp doesn't change %rsp.
-INSTRUCTOR: the Try It listing is gcc 13 -O0 output cleaned up: 64-bit registers, labels instead of addresses, and decimal offsets. It was assembled and run (it prints "z is: 16"). The 0x171 address comes from the real binary.
-{% endcomment %}
+
 
 Next time we trace the book's `assign` and `adder` program, one frame at a time.

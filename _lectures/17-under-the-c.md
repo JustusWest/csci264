@@ -71,9 +71,7 @@ $ wc -l adder.c
 $ gcc -E adder.c | wc -l
 ```
 
-{% comment %}
-INSTRUCTOR: paste the line count from the Mac here (it was 586 for lab1.c, almost all of it stdio.h).
-{% endcomment %}
+
 
 The `#include <stdio.h>` line was replaced by the full contents of that header file. That is where the prototype for `printf` comes from:
 
@@ -90,10 +88,6 @@ The header has the *prototype*, not the code for `printf`.
 $ gcc -S adder.c
 $ wc -l adder.s
 ```
-
-{% comment %}
-INSTRUCTOR: paste the line count from the Mac here.
-{% endcomment %}
 
 `adder.s` is a text file. Open it in an editor. It's the assembly version of our program.
 
@@ -123,9 +117,7 @@ $ nm adder.o
                  U _printf
 ```
 
-{% comment %}
-INSTRUCTOR: the nm addresses above are predicted from the ARM code sizes, not captured. Re-run on the Mac and paste.
-{% endcomment %}
+
 
 `T` means the function's code is in this file. `U` means **undefined**: we call it, but the code isn't here.
 
@@ -154,9 +146,7 @@ _assign:
 
 </details>
 
-{% comment %}
-INSTRUCTOR: the ARM listing above is from Compiler Explorer's clang with --target=arm64-apple-macos, not from the Mac. Check it against `gcc -S` on the Mac.
-{% endcomment %}
+
 
 To see x86-64 assembly from any computer, we will use **Compiler Explorer**. [Set it up with these instructions]({{ "/godbolt/" | relative_url }}), or [open this program in Compiler Explorer](https://godbolt.org/clientstate/eyJzZXNzaW9ucyI6W3siaWQiOjEsImxhbmd1YWdlIjoiYyIsInNvdXJjZSI6IiNpbmNsdWRlIDxzdGRpby5oPlxuXG5pbnQgYWRkZXIoKSB7XG4gICAgaW50IGE7XG4gICAgcmV0dXJuIGEgKyAyO1xufVxuXG5pbnQgYXNzaWduKCkge1xuICAgIGludCB5ID0gNDA7XG4gICAgcmV0dXJuIHk7XG59XG5cbmludCBtYWluKHZvaWQpIHtcbiAgICBpbnQgeDtcbiAgICBhc3NpZ24oKTtcbiAgICB4ID0gYWRkZXIoKTtcbiAgICBwcmludGYoXCJ4IGlzOiAlZFxcblwiLCB4KTtcbiAgICByZXR1cm4gMDtcbn1cbiIsImNvbXBpbGVycyI6W3siaWQiOiJjZzE2MiIsIm9wdGlvbnMiOiIiLCJmaWx0ZXJzIjp7ImJpbmFyeU9iamVjdCI6dHJ1ZSwiaW50ZWwiOmZhbHNlLCJsYWJlbHMiOnRydWUsImxpYnJhcnlDb2RlIjp0cnVlLCJkaXJlY3RpdmVzIjp0cnVlLCJjb21tZW50T25seSI6dHJ1ZSwiZGVtYW5nbGUiOnRydWV9fV19XX0%3D) with the settings already in place.
 
@@ -232,9 +222,7 @@ main:
 
 So with `-O1`, this program prints `x is: 2`. The 42 was never guaranteed: it came from using a variable we never set. Optimization changed the answer.
 
-{% comment %}
-INSTRUCTOR: Before showing -O1, ask what they think it will print now. The answer changing from 42 to 2 is the payoff.
-{% endcomment %}
+
 
 ### 5. Running It
 

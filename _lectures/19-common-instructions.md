@@ -73,9 +73,7 @@ combine:
 
 Notice that `z` is written to the stack at `1a`, changed in memory at `1d`, and read back at `21`. Without optimization (`-O0`, the default), the compiler does not keep values in registers from one line of C to the next. Every line reads its variables from the stack and writes them back. With `-O1`, this whole function becomes `mov $0xc,%eax` and `ret`.
 
-{% comment %}
-INSTRUCTOR: before showing the assembly, ask how many instructions they expect for z = x + y. Then ask why it can't be done in one.
-{% endcomment %}
+
 
 ## The Stack
 
@@ -128,15 +126,11 @@ pop  %rcx
 
 </div>
 
-{% comment %}
-INSTRUCTOR: draw the stack on the board and ask what ends up in %rcx before filling in the last row.
-{% endcomment %}
+
 
 [Run Example 2 in the ASM Visualizer](https://asm.diveintosystems.org/arithmetic/x86_64/push%20%25rax%0Apush%20%25rdx%0Apop%20%25rcx/0/0/0/0/7/0/2). `%rsp` starts at a different address there, but it moves the same way: down by 8 on each `push`, up by 8 on the `pop`.
 
-{% comment %}
-INSTRUCTOR: the two ASM Visualizer links in these notes were built by hand from the Arithmetic Mode URL format and not opened. Click through both before class.
-{% endcomment %}
+
 
 ## Setting Up a Stack Frame
 
@@ -220,8 +214,5 @@ The last line puts `z` in `%rax`, the return value. With `x` = 10 and `y` = 4, `
 
 </details>
 
-{% comment %}
-INSTRUCTOR: have them work it in pairs for a few minutes before running it in the visualizer.
-{% endcomment %}
 
 For some practice, try the [Exercises from the book for §7.2](https://diveintosystems.org/exercises/section-7_2.html).

@@ -7,15 +7,15 @@ published: true
 
 To check your answers, [set up Compiler Explorer]({{ "/godbolt/" | relative_url }}). To run assembly, use the [ASM Visualizer]({{ "/asm-visualizer/" | relative_url }}).
 
-So far we've gone from C to assembly: `if` statements jump forward, and loops jump backward. Today we go the other way. Each problem below is a function compiled by `gcc`. Your job is to recover the C. This is how you read code you didn't write, and it's the kind of long problem you'll see on exams.
+So far we've gone from example code in C to programs in Assembly. Now we go the other way: each problem below is a function compiled by `gcc`. Your job is to recover the C. 
 
-The listings are the compiler's code, cleaned up a little: they use the 64-bit registers, 8-byte stack slots, and labels instead of addresses. Compiler Explorer's version uses `%eax` and friends and shows addresses, but the instructions are the same.
+The listings are the compiler's code, cleaned up a little: they use the 64-bit registers, 8-byte stack slots, and labels instead of addresses. Compiler Explorer's version uses `%eax` and shows addresses, but the instructions are the same.
 
 Work in pairs, on paper.
 
 ## Reading Compiled Code
 
-1. **Name the parameters.** Without optimization, the compiler copies each parameter to the stack at the top of the function. The first parameter arrives in `%rdi` and the second in `%rsi`. Next time we see why.
+1. **Name the parameters.** Without optimization, the compiler copies each parameter to the stack at the top of the function. The first parameter arrives in `%rdi` and the second in `%rsi`.
 2. **Annotate every line.** Use the variable names, not the stack offsets.
 3. **Draw an arrow for every jump.**
 4. **Match the arrows to C:**
@@ -28,7 +28,7 @@ Work in pairs, on paper.
 | A `jmp` down to the test before the loop | `while` or `for` |
 
 5. **Write the C, then clean it up.** Pick `for` or `while`, and turn hex constants into something readable.
-6. **Test it.** Trace it with small values and say what the function does in one sentence.
+6. **Test it.** Trace it with small values and explain what the function does in one sentence.
 
 ## Problem 1
 
@@ -473,16 +473,6 @@ int mystery5(int n, int k) {
 
 </div>
 
-{% comment %}
-INSTRUCTOR: practice day, no new material. Pairs on paper. For each problem, project the bare listing, give them about 8 minutes, then work it on the board: annotate, draw the arrows, write the C. The Answers button swaps the bare listing for the annotated one.
-INSTRUCTOR: this is also the buffer day. If loops ran over last time, finish them first and drop Problems 4 and 5. Problem 5 is for students to do at home, or in class if the room runs fast.
-INSTRUCTOR: the listings are hand-adapted from gcc 13 output (-O0 and -O1, x86-64 Linux, -fcf-protection=none): 32-bit registers widened to 64-bit, 4-byte stack slots moved to 8-byte slots at -8, -16, -24, -32, and addresses replaced with labels. Problem 2's char load (mov %al / cmpb) became a plain 8-byte load and cmp. Problem 5's cltd/idivl became mov $0, %rdx / idivq, which is right because i is never negative. Every adapted listing was assembled and run against the C over a range of inputs (including negatives for 1 and 4, all ASCII codes for 2), with no mismatches.
-INSTRUCTOR: the Compiler Explorer links show the real compiler output, with %eax, 4-byte slots, and addresses. Open each before class and check it matches the instructions here.
-INSTRUCTOR: the Problem 3 visualizer link was built from the Arithmetic Mode URL format and not opened. Click through it before class.
-INSTRUCTOR: Problem 2 is the only new idea today: && as two jumps to the same label. Let them find it before saying it. If they ask about -O1 for mystery2, it uses sub, an unsigned compare, and setbe; skip it.
-INSTRUCTOR: Problem 1 at -O1 checks 100 before 0. Ask why that's allowed before showing the answer bullet.
-INSTRUCTOR: Problem 3's (5, 0) row never stops. Trace it on paper; don't run it in the visualizer.
-{% endcomment %}
 
 For more practice, try the [Exercises from the book for §7.4](https://diveintosystems.org/exercises/section-7_4.html).
 

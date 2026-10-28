@@ -329,12 +329,7 @@ None of them use `imul` or `idiv`. Compiler Explorer prints `shl`, but it is the
 
 </details>
 
-{% comment %}
-INSTRUCTOR: have them write predictions down in pairs before opening the link. Most will predict sal for x * 8, many will predict imul for x * 5, and almost nobody will predict the extra lines in div4.
-INSTRUCTOR: the listings in these notes come from gcc 13 at -O0 on x86-64. Compiler Explorer's gcc may be newer; open each Compiler Explorer link before class and check that the output matches.
-INSTRUCTOR: for each "Show code" block, open the blank visualizer link at the top, type the code live, and set the starting values. The "finished version" links were built by hand from the Arithmetic Mode URL format and not opened; click through them before class.
-INSTRUCTOR: for each board example, project the set-up table, give them a few minutes, then work it on the board. The Answers button swaps the blank table for the filled one.
-{% endcomment %}
+
 
 For some practice, try the [Exercises from the book for §7.3](https://diveintosystems.org/exercises/section-7_3.html).
 

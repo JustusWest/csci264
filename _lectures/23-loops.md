@@ -285,27 +285,7 @@ jle body                # if i <= n, go back to the body
 
 </details>
 
-{% comment %}
-INSTRUCTOR: the listings in these notes come from gcc 13 at -O0 and -O1 on x86-64 Linux, with -fcf-protection=none (Ubuntu's gcc otherwise adds an endbr64 at the top of every function and shifts every address by 4). Compiler Explorer's gcc is newer; open each Compiler Explorer link before class and check that the output matches.
-INSTRUCTOR: the visualizer code was checked by assembling and running it on x86-64 with the same starting values, but the links were built from the Arithmetic Mode URL format and not opened; click through them before class.
-INSTRUCTOR: one target for the live optimization, checked for n = 4, 1, 0, and -3. Everything is in registers, and the loop is a do-while with one check in front that skips it when n < 1:
-  mov -8(%rbp), %rdx      # %rdx = n
-  mov $0, %rax            # total = 0
-  mov $1, %rcx            # i = 1
-  cmp %rdx, %rcx          # is i > n already?
-  jg done                 # if so, skip the loop
-  body:
-  add %rcx, %rax          # total += i
-  add $1, %rcx            # i += 1
-  cmp %rdx, %rcx          # compare i with n
-  jle body                # if i <= n, go back
-  done:
-INSTRUCTOR: for the Try It, live code it with the test at the top first, then move the test to the bottom. That reviews the whole lecture.
-INSTRUCTOR: draw the arrows on the projected compiler listing, forward arrow first. Example 2 is the payoff for the bottom test; keep it to the jump count and the pipeline callback, and don't get into branch prediction unless asked.
-INSTRUCTOR: the book's goto form (Table 48) is skipped, as in the if lecture. Go straight from the arrows to the while loop.
-INSTRUCTOR: if time is short, cut the -O1 listing. -O1 loops come back on the practice day.
-INSTRUCTOR: for each board example, project the set-up table, give them a few minutes, then work it on the board. The Answers button swaps the blank table for the filled one.
-{% endcomment %}
+
 
 For some practice, try the [Exercises from the book for §7.4](https://diveintosystems.org/exercises/section-7_4.html).
 
