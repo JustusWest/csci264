@@ -7,7 +7,7 @@ published: true
 
 To follow along with the examples, [set up Compiler Explorer]({{ "/godbolt/" | relative_url }}). To run assembly, use the [ASM Visualizer]({{ "/asm-visualizer/" | relative_url }}).
 
-Last time we traced one function call. Today we trace a whole program, from `main` through function executions.
+Last time we wrote one function and followed a single call. Today we write a whole program, then trace it.
 
 Here is the book's example from the start of Chapter 7. We use `long` instead of `int` so the assembly uses the 64-bit registers:
 
@@ -41,6 +41,78 @@ x is: 42
 
 `adder` never sets `a`. So where does 42 come from?
 
+## Writing the Program
+
+Let's write this program in a [blank Function Mode](https://asm.diveintosystems.org/function/x86_64), one function at a time, using the four parts from last time.
+
+**Local variables live in the frame.** Each local gets an 8-byte slot below `%rbp`, starting at `-8(%rbp)`. Each of our three functions has one local, so each one uses `-8(%rbp)`.
+
+| C | Assembly |
+|---|---|
+| `long y = 40;` | `movq $40, -8(%rbp)` |
+| `return y;` | `mov -8(%rbp), %rax` |
+| `long a;` | nothing |
+| `return a + 2;` | `mov -8(%rbp), %rax`, then `add $2, %rax` |
+| `assign();` | `call assign` |
+| `x = adder();` | `call adder`, then `mov %rax, -8(%rbp)` |
+
+- **`long a;` makes no instruction.** Declaring a variable without a value just gives it a slot. Nothing is written there.
+- **`assign();` ignores the return value.** The 40 comes back in `%rax`, and `main` never uses it.
+- **`main` makes room for `x` with `sub`, so it ends with `leave`.** `assign` and `adder` call nothing, so they never move `%rsp`.
+- **We leave out the `printf`.** The visualizer doesn't show what it prints, and `x` will be on the stack where we can see it.
+
+<details class="code-example" markdown="1">
+<summary>Show code: the program</summary>
+
+```text
+  .text
+  .globl	assign
+  .type	assign, @function
+
+assign:
+  push %rbp               # save main's %rbp
+  mov %rsp, %rbp          # start assign's frame
+  movq $40, -8(%rbp)      # long y = 40;
+  mov -8(%rbp), %rax      # return y;
+  pop %rbp                # restore main's %rbp
+  ret
+  .size	assign, .-assign
+
+  .globl	adder
+  .type	adder, @function
+
+adder:
+  push %rbp               # save main's %rbp
+  mov %rsp, %rbp          # start adder's frame
+                          # long a;  (no instruction)
+  mov -8(%rbp), %rax      # return a + 2;
+  add $2, %rax
+  pop %rbp                # restore main's %rbp
+  ret
+  .size	adder, .-adder
+
+  .globl	main
+  .type	main, @function
+
+main:
+  push %rbp               # save the caller's %rbp
+  mov %rsp, %rbp          # start main's frame
+  sub $16, %rsp           # room for x
+  call assign             # assign();
+  call adder              # x = adder();
+  mov %rax, -8(%rbp)
+  mov $0, %rax            # return 0;
+  leave
+  ret
+  .size	main, .-main
+```
+
+[Open it in the ASM Visualizer](https://asm.diveintosystems.org/function/x86_64/%20%20.text%0A%20%20.globl%09assign%0A%20%20.type%09assign%2C%20%40function%0A%0Aassign%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20main's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20assign's%20frame%0A%20%20movq%20%2440%2C%20-8(%25rbp)%20%20%20%20%20%20%23%20long%20y%20%3D%2040%3B%0A%20%20mov%20-8(%25rbp)%2C%20%25rax%20%20%20%20%20%20%23%20return%20y%3B%0A%20%20pop%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20restore%20main's%20%25rbp%0A%20%20ret%0A%20%20.size%09assign%2C%20.-assign%0A%0A%20%20.globl%09adder%0A%20%20.type%09adder%2C%20%40function%0A%0Aadder%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20main's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20adder's%20frame%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20long%20a%3B%20%20(no%20instruction)%0A%20%20mov%20-8(%25rbp)%2C%20%25rax%20%20%20%20%20%20%23%20return%20a%20%2B%202%3B%0A%20%20add%20%242%2C%20%25rax%0A%20%20pop%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20restore%20main's%20%25rbp%0A%20%20ret%0A%20%20.size%09adder%2C%20.-adder%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20the%20caller's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20main's%20frame%0A%20%20sub%20%2416%2C%20%25rsp%20%20%20%20%20%20%20%20%20%20%20%23%20room%20for%20x%0A%20%20call%20assign%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20assign()%3B%0A%20%20call%20adder%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20x%20%3D%20adder()%3B%0A%20%20mov%20%25rax%2C%20-8(%25rbp)%0A%20%20mov%20%240%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%20%20%23%20return%200%3B%0A%20%20leave%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A)
+
+</details>
+
+This is the same code `gcc` makes without optimization, apart from the `printf`.
+
 ## How to Trace a Program
 
 1. **Write down the starting values** of `%rip`, `%rsp`, and `%rbp`.
@@ -62,69 +134,25 @@ Here is what changes for each instruction:
 
 Every other instruction moves `%rip` to the next line.
 
-## A Full Assembly Program
-
-Here is the assembly ([open it in Compiler Explorer](https://godbolt.org/clientstate/eyJzZXNzaW9ucyI6W3siaWQiOjEsImxhbmd1YWdlIjoiYyIsInNvdXJjZSI6IiNpbmNsdWRlIDxzdGRpby5oPlxuXG5sb25nIGFzc2lnbih2b2lkKSB7XG4gICAgbG9uZyB5ID0gNDA7XG4gICAgcmV0dXJuIHk7XG59XG5cbmxvbmcgYWRkZXIodm9pZCkge1xuICAgIGxvbmcgYTtcbiAgICByZXR1cm4gYSArIDI7XG59XG5cbmludCBtYWluKHZvaWQpIHtcbiAgICBsb25nIHg7XG4gICAgYXNzaWduKCk7XG4gICAgeCA9IGFkZGVyKCk7XG4gICAgcHJpbnRmKFwieCBpczogJWxkXFxuXCIsIHgpO1xuICAgIHJldHVybiAwO1xufVxuIiwiY29tcGlsZXJzIjpbeyJpZCI6ImNnMTYyIiwib3B0aW9ucyI6IiIsImZpbHRlcnMiOnsiYmluYXJ5T2JqZWN0Ijp0cnVlLCJpbnRlbCI6ZmFsc2UsImxhYmVscyI6dHJ1ZSwibGlicmFyeUNvZGUiOnRydWUsImRpcmVjdGl2ZXMiOnRydWUsImNvbW1lbnRPbmx5Ijp0cnVlLCJkZW1hbmdsZSI6dHJ1ZX19XX1dfQ%3D%3D)):
-
-```text
-assign:
-  401126:  push   %rbp
-  401127:  mov    %rsp,%rbp
-  40112a:  movq   $0x28,-0x8(%rbp)
-  401132:  mov    -0x8(%rbp),%rax
-  401136:  pop    %rbp
-  401137:  ret
-
-adder:
-  401138:  push   %rbp
-  401139:  mov    %rsp,%rbp
-  40113c:  mov    -0x8(%rbp),%rax
-  401140:  add    $0x2,%rax
-  401144:  pop    %rbp
-  401145:  ret
-
-main:
-  401146:  push   %rbp
-  401147:  mov    %rsp,%rbp
-  40114a:  sub    $0x10,%rsp
-  40114e:  call   assign                # assign();
-  401153:  call   adder                 # x = adder();
-  401158:  mov    %rax,-0x8(%rbp)
-  40115c:  mov    -0x8(%rbp),%rax       # printf("x is: %ld\n", x);
-  401160:  mov    %rax,%rsi
-  401163:  mov    $0x402004,%rdi
-  401168:  mov    $0x0,%rax
-  40116d:  call   printf
-  401172:  mov    $0x0,%rax             # return 0;
-  401177:  leave
-  401178:  ret
-```
-
-- **`assign` and `adder` take no arguments**, so nothing is loaded into `%rdi` before the calls. The trace is only about frames.
-- **`adder` never writes to `-0x8(%rbp)`.** It only reads from it. That is the `a` that was never set.
-
-As before, we drop the leading `0x401` from code addresses, so 0x401146 is just 0x146. The stack addresses are arbitrary: `%rsp` starts at 0xd48 and `%rbp` at 0x830.
+We trace with the visualizer's own addresses, shortened to the last three hex digits as last time, so you can check every row by stepping through. `main` has already run `push %rbp`, `mov %rsp, %rbp`, and `sub $16, %rsp`, so `%rsp` is AE0 and `%rbp` is AF0.
 
 ## assign
 
 <div class="board-example" markdown="1">
-<p class="board-title">Example 1 — main starts and calls assign</p>
+<p class="board-title">Example 1 — main calls assign</p>
 
 <div class="board-setup" markdown="1">
 
 | Address | Instruction | `%rip` | `%rsp` | `%rbp` | Other changes |
 |---|---|---|---|---|---|
-|  | (start) | 0x146 | 0xd48 | 0x830 | |
-| 0x146 | `push %rbp` | | | | |
-| 0x147 | `mov %rsp,%rbp` | | | | |
-| 0x14a | `sub $0x10,%rsp` | | | | |
-| 0x14e | `call assign` | | | | |
-| 0x126 | `push %rbp` | | | | |
-| 0x127 | `mov %rsp,%rbp` | | | | |
-| 0x12a | `movq $0x28,-0x8(%rbp)` | | | | |
-| 0x132 | `mov -0x8(%rbp),%rax` | | | | |
-| 0x136 | `pop %rbp` | | | | |
-| 0x137 | `ret` | | | | |
+|  | (start) | 12E | AE0 | AF0 | |
+| 12E | `call assign` | | | | |
+| 106 | `push %rbp` | | | | |
+| 107 | `mov %rsp,%rbp` | | | | |
+| 10A | `movq $40,-8(%rbp)` | | | | |
+| 112 | `mov -8(%rbp),%rax` | | | | |
+| 116 | `pop %rbp` | | | | |
+| 117 | `ret` | | | | |
 
 </div>
 
@@ -133,38 +161,34 @@ As before, we drop the leading `0x401` from code addresses, so 0x401146 is just 
 
 | Address | Instruction | `%rip` | `%rsp` | `%rbp` | Other changes |
 |---|---|---|---|---|---|
-|  | (start) | 0x146 | 0xd48 | 0x830 | |
-| 0x146 | `push %rbp` | 0x147 | 0xd40 | | M[0xd40] = 0x830 |
-| 0x147 | `mov %rsp,%rbp` | 0x14a | | 0xd40 | |
-| 0x14a | `sub $0x10,%rsp` | 0x14e | 0xd30 | | |
-| 0x14e | `call assign` | **0x126** | 0xd28 | | M[0xd28] = 0x153 |
-| 0x126 | `push %rbp` | 0x127 | 0xd20 | | M[0xd20] = 0xd40 |
-| 0x127 | `mov %rsp,%rbp` | 0x12a | | 0xd20 | |
-| 0x12a | `movq $0x28,-0x8(%rbp)` | 0x132 | | | M[0xd18] = 0x28 (`y`) |
-| 0x132 | `mov -0x8(%rbp),%rax` | 0x136 | | | `%rax` = 0x28 |
-| 0x136 | `pop %rbp` | 0x137 | 0xd28 | 0xd40 | |
-| 0x137 | `ret` | **0x153** | 0xd30 | | |
+|  | (start) | 12E | AE0 | AF0 | |
+| 12E | `call assign` | **106** | AD8 |  | M[AD8] = 133 |
+| 106 | `push %rbp` | 107 | AD0 |  | M[AD0] = AF0 |
+| 107 | `mov %rsp,%rbp` | 10A |  | AD0 |  |
+| 10A | `movq $40,-8(%rbp)` | 112 |  |  | M[AC8] = 0x28 (`y`) |
+| 112 | `mov -8(%rbp),%rax` | 116 |  |  | `%rax` = 0x28 |
+| 116 | `pop %rbp` | 117 | AD8 | AF0 |  |
+| 117 | `ret` | **133** | AE0 |  |  |
 
 </details>
 
 </div>
 
-Here is the stack right after `movq $0x28,-0x8(%rbp)`. Like the ASM Visualizer, the lowest address is at the top:
+Here is the stack right after `movq $40,-8(%rbp)`. Like the ASM Visualizer, the lowest address is at the top:
 
 | Address | Value | |
 |---|---|---|
-| 0xd18 | 0x28 (`y`) | |
-| 0xd20 | 0xd40 (`main`'s `%rbp`) | ← `%rsp`, `%rbp` |
-| 0xd28 | 0x153 (return address) | |
-| 0xd30 | | ← `main`'s `%rsp` |
-| 0xd38 | (`x`, not set yet) | |
-| 0xd40 | 0x830 (`main`'s caller's `%rbp`) | ← `main`'s `%rbp` |
-| 0xd48 | (return address into the C library) | |
+| AC8 | 0x28 (`y`) | |
+| AD0 | AF0 (`main`'s `%rbp`) | ← `%rsp`, `%rbp` |
+| AD8 | 133 (return address) | |
+| AE0 | (unused) | ← `main`'s `%rsp` |
+| AE8 | (`x`, not set yet) | |
+| AF0 | 0x1 (`main`'s caller's `%rbp`) | ← `main`'s `%rbp` |
 
-- **`main`'s frame is 0xd30 to 0xd40.** `sub $0x10,%rsp` made room for `x` at `-0x8(%rbp)`, which is 0xd38.
-- **`y` is past the top of the stack.** `%rsp` is 0xd20 and `y` is at 0xd18. `assign` calls nothing, so it doesn't bother moving `%rsp`: nothing will be pushed on top of `y`.
-- **After `ret`, `%rsp` and `%rbp` are back to 0xd30 and 0xd40.** `main` is the active frame again.
-- **0x28 is still at 0xd18.** `pop` and `ret` move `%rsp`. They don't erase anything.
+- **`main`'s frame is AE0 to AF0.** `sub $16, %rsp` made room for `x` at `-8(%rbp)`, which is AE8.
+- **`y` is past the top of the stack.** `%rsp` is AD0 and `y` is at AC8. `assign` calls nothing, so it doesn't bother moving `%rsp`: nothing will be pushed on top of `y`.
+- **After `ret`, `%rsp` and `%rbp` are back to AE0 and AF0.** `main` is the active frame again.
+- **0x28 is still at AC8.** `pop` and `ret` move `%rsp`. They don't erase anything.
 
 ## adder
 
@@ -175,14 +199,14 @@ Here is the stack right after `movq $0x28,-0x8(%rbp)`. Like the ASM Visualizer, 
 
 | Address | Instruction | `%rip` | `%rsp` | `%rbp` | Other changes |
 |---|---|---|---|---|---|
-|  | (start) | 0x153 | 0xd30 | 0xd40 | |
-| 0x153 | `call adder` | | | | |
-| 0x138 | `push %rbp` | | | | |
-| 0x139 | `mov %rsp,%rbp` | | | | |
-| 0x13c | `mov -0x8(%rbp),%rax` | | | | |
-| 0x140 | `add $0x2,%rax` | | | | |
-| 0x144 | `pop %rbp` | | | | |
-| 0x145 | `ret` | | | | |
+|  | (start) | 133 | AE0 | AF0 | |
+| 133 | `call adder` | | | | |
+| 118 | `push %rbp` | | | | |
+| 119 | `mov %rsp,%rbp` | | | | |
+| 11C | `mov -8(%rbp),%rax` | | | | |
+| 120 | `add $2,%rax` | | | | |
+| 124 | `pop %rbp` | | | | |
+| 125 | `ret` | | | | |
 
 </div>
 
@@ -191,87 +215,45 @@ Here is the stack right after `movq $0x28,-0x8(%rbp)`. Like the ASM Visualizer, 
 
 | Address | Instruction | `%rip` | `%rsp` | `%rbp` | Other changes |
 |---|---|---|---|---|---|
-|  | (start) | 0x153 | 0xd30 | 0xd40 | |
-| 0x153 | `call adder` | **0x138** | 0xd28 | | M[0xd28] = 0x158 |
-| 0x138 | `push %rbp` | 0x139 | 0xd20 | | M[0xd20] = 0xd40 |
-| 0x139 | `mov %rsp,%rbp` | 0x13c | | 0xd20 | |
-| 0x13c | `mov -0x8(%rbp),%rax` | 0x140 | | | `%rax` = **0x28** |
-| 0x140 | `add $0x2,%rax` | 0x144 | | | `%rax` = 0x2a |
-| 0x144 | `pop %rbp` | 0x145 | 0xd28 | 0xd40 | |
-| 0x145 | `ret` | **0x158** | 0xd30 | | |
+|  | (start) | 133 | AE0 | AF0 | |
+| 133 | `call adder` | **118** | AD8 |  | M[AD8] = 138 |
+| 118 | `push %rbp` | 119 | AD0 |  | M[AD0] = AF0 |
+| 119 | `mov %rsp,%rbp` | 11C |  | AD0 |  |
+| 11C | `mov -8(%rbp),%rax` | 120 |  |  | `%rax` = **0x28** |
+| 120 | `add $2,%rax` | 124 |  |  | `%rax` = 0x2a |
+| 124 | `pop %rbp` | 125 | AD8 | AF0 |  |
+| 125 | `ret` | **138** | AE0 |  |  |
 
 </details>
 
 </div>
 
-Here is the stack right before `mov -0x8(%rbp),%rax`:
+Here is the stack right before `mov -8(%rbp),%rax`:
 
 | Address | Value | |
 |---|---|---|
-| 0xd18 | 0x28 (left there by `assign`) | |
-| 0xd20 | 0xd40 (`main`'s `%rbp`) | ← `%rsp`, `%rbp` |
-| 0xd28 | 0x158 (return address, was 0x153) | |
-| 0xd30 | | ← `main`'s `%rsp` |
-| 0xd38 | (`x`, not set yet) | |
-| 0xd40 | 0x830 | ← `main`'s `%rbp` |
+| AC8 | 0x28 (left there by `assign`) | |
+| AD0 | AF0 (`main`'s `%rbp`) | ← `%rsp`, `%rbp` |
+| AD8 | 138 (return address, was 133) | |
+| AE0 | (unused) | ← `main`'s `%rsp` |
+| AE8 | (`x`, not set yet) | |
+| AF0 | 0x1 | ← `main`'s `%rbp` |
 
-- **`adder`'s frame starts at the same address as `assign`'s.** Both are called from `main` with `%rsp` at 0xd30, so both get `%rbp` = 0xd20.
-- **`a` and `y` are the same 8 bytes.** Both are at `-0x8(%rbp)`, which is 0xd18. `assign` left 40 there and nothing erased it.
-- **`call adder` overwrote the old return address.** 0x158 replaced 0x153 at 0xd28.
+- **`adder`'s frame starts at the same address as `assign`'s.** Both are called from `main` with `%rsp` at AE0, so both get `%rbp` = AD0.
+- **`a` and `y` are the same 8 bytes.** Both are at `-8(%rbp)`, which is AC8. `assign` left 40 there and nothing erased it.
+- **`call adder` overwrote the old return address.** 138 replaced 133 at AD8.
 - **0x2a is 42.** `adder` returns it in `%rax`.
 
 ## Back to main
 
-<div class="board-example" markdown="1">
-<p class="board-title">Example 3 — main prints and returns</p>
-
-<div class="board-setup" markdown="1">
-
-| Address | Instruction | `%rip` | `%rsp` | `%rbp` | Other changes |
-|---|---|---|---|---|---|
-|  | (start) | 0x158 | 0xd30 | 0xd40 | |
-| 0x158 | `mov %rax,-0x8(%rbp)` | | | | |
-| 0x15c | `mov -0x8(%rbp),%rax` | | | | |
-| 0x160 | `mov %rax,%rsi` | | | | |
-| 0x163 | `mov $0x402004,%rdi` | | | | |
-| 0x168 | `mov $0x0,%rax` | | | | |
-| 0x16d | `call printf` | | | | |
-| 0x172 | `mov $0x0,%rax` | | | | |
-| 0x177 | `leave` | | | | |
-| 0x178 | `ret` | | | | |
-
-</div>
-
-<details class="board-answer" markdown="1">
-<summary>Answers</summary>
-
-| Address | Instruction | `%rip` | `%rsp` | `%rbp` | Other changes |
-|---|---|---|---|---|---|
-|  | (start) | 0x158 | 0xd30 | 0xd40 | |
-| 0x158 | `mov %rax,-0x8(%rbp)` | 0x15c | | | M[0xd38] = 0x2a (`x`) |
-| 0x15c | `mov -0x8(%rbp),%rax` | 0x160 | | | `%rax` = 0x2a |
-| 0x160 | `mov %rax,%rsi` | 0x163 | | | `%rsi` = 0x2a |
-| 0x163 | `mov $0x402004,%rdi` | 0x168 | | | `%rdi` = 0x402004 |
-| 0x168 | `mov $0x0,%rax` | 0x16d | | | `%rax` = 0 |
-| 0x16d | `call printf` | 0x172 | | | prints `x is: 42`, `%rax` = 9 |
-| 0x172 | `mov $0x0,%rax` | 0x177 | | | `%rax` = 0 |
-| 0x177 | `leave` | 0x178 | 0xd48 | 0x830 | |
-| 0x178 | `ret` | (C library) | 0xd50 | | |
-
-</details>
-
-</div>
-
-- **`printf` takes two arguments.** The first is the format string, so `%rdi` gets its address, 0x402004. The second is `x`, so `%rsi` gets 0x2a.
-- **`%rax` = 0 tells `printf` there are no floating-point arguments.** `printf` can take any number of arguments, so it needs to be told.
-- **We don't trace inside `printf`.** The `call printf` row is the whole call. `printf` pushes its own frame below `main`'s, prints, and returns to 0x172. It returns the number of characters it printed (9) in `%rax`, and `main` ignores it.
-- **`printf`'s code isn't in our file.** Earlier in the course, `nm` listed `printf` as `U`, for undefined. The linker connects the call to the C library. That is the `@plt` you see after `printf` in `objdump`.
-- **`leave` sets `%rsp` to 0xd40, then pops 0x830 into `%rbp`.** `%rbp` is back where it started. `ret` pops the return address at 0xd48, which goes back into the C library code that called `main`.
+- **`mov %rax, -8(%rbp)` stores the 42 in `x`**, at AE8. In the C, `printf` would print it here.
+- **`leave` sets `%rsp` to AF0, then pops `main`'s caller's `%rbp`.** `ret` pops the return address at AF8 and goes back into the code that called `main`.
 
 ## The Bug
 
 - **Local variables are not set to 0.** An uninitialized local holds whatever was in its slot last.
-- **The stack keeps old values.** `assign`'s `y` was still at 0xd18 when `adder` read `a` from the same place.
+- **The stack keeps old values.** `assign`'s `y` was still at AC8 when `adder` read `a` from the same place.
+- **We can't predict it.** If `main` called `adder()` before `assign()`, `a` would hold whatever was at AC8 before `main` ran.
 - **It only works by accident.** Reading an uninitialized variable is undefined behavior. With `-O1`, the compiler drops the stack entirely and the program prints `x is: 2` ([open it in Compiler Explorer](https://godbolt.org/clientstate/eyJzZXNzaW9ucyI6W3siaWQiOjEsImxhbmd1YWdlIjoiYyIsInNvdXJjZSI6IiNpbmNsdWRlIDxzdGRpby5oPlxuXG5sb25nIGFzc2lnbih2b2lkKSB7XG4gICAgbG9uZyB5ID0gNDA7XG4gICAgcmV0dXJuIHk7XG59XG5cbmxvbmcgYWRkZXIodm9pZCkge1xuICAgIGxvbmcgYTtcbiAgICByZXR1cm4gYSArIDI7XG59XG5cbmludCBtYWluKHZvaWQpIHtcbiAgICBsb25nIHg7XG4gICAgYXNzaWduKCk7XG4gICAgeCA9IGFkZGVyKCk7XG4gICAgcHJpbnRmKFwieCBpczogJWxkXFxuXCIsIHgpO1xuICAgIHJldHVybiAwO1xufVxuIiwiY29tcGlsZXJzIjpbeyJpZCI6ImNnMTYyIiwib3B0aW9ucyI6Ii1PMSIsImZpbHRlcnMiOnsiYmluYXJ5T2JqZWN0Ijp0cnVlLCJpbnRlbCI6ZmFsc2UsImxhYmVscyI6dHJ1ZSwibGlicmFyeUNvZGUiOnRydWUsImRpcmVjdGl2ZXMiOnRydWUsImNvbW1lbnRPbmx5Ijp0cnVlLCJkZW1hbmdsZSI6dHJ1ZX19XX1dfQ%3D%3D)). `gcc` will warn you if you ask:
 
 ```console
@@ -282,32 +264,92 @@ prog.c:10:14: warning: 'a' is used uninitialized [-Wuninitialized]
       |            ~~^~~
 ```
 
-## In the ASM Visualizer
+## Keeping a Value Across a Call
 
-[Open the program in the ASM Visualizer's Function Mode](https://asm.diveintosystems.org/function/x86_64/%20%20.section%20.rodata%0A.LC0%3A%0A%20%20.string%20%22x%20is%3A%20%25ld%5Cn%22%0A%0A%20%20.text%0A%20%20.globl%09assign%0A%20%20.type%09assign%2C%20%40function%0A%0Aassign%3A%0A%20%20pushq%20%25rbp%0A%20%20movq%20%25rsp%2C%20%25rbp%0A%20%20movq%20%2440%2C%20-8(%25rbp)%0A%20%20movq%20-8(%25rbp)%2C%20%25rax%0A%20%20popq%20%25rbp%0A%20%20ret%0A%20%20.size%09assign%2C%20.-assign%0A%0A%20%20.globl%09adder%0A%20%20.type%09adder%2C%20%40function%0A%0Aadder%3A%0A%20%20pushq%20%25rbp%0A%20%20movq%20%25rsp%2C%20%25rbp%0A%20%20movq%20-8(%25rbp)%2C%20%25rax%0A%20%20addq%20%242%2C%20%25rax%0A%20%20popq%20%25rbp%0A%20%20ret%0A%20%20.size%09adder%2C%20.-adder%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20pushq%20%25rbp%0A%20%20movq%20%25rsp%2C%20%25rbp%0A%20%20subq%20%2416%2C%20%25rsp%0A%20%20call%20assign%0A%20%20call%20adder%0A%20%20movq%20%25rax%2C%20-8(%25rbp)%0A%20%20movq%20-8(%25rbp)%2C%20%25rax%0A%20%20movq%20%25rax%2C%20%25rsi%0A%20%20movq%20%24.LC0%2C%20%25rdi%0A%20%20movq%20%240%2C%20%25rax%0A%20%20call%20printf%0A%20%20movq%20%240%2C%20%25rax%0A%20%20leave%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A) and click **Run Code**. Step with **Next** and watch `RSP` and `RBP` in the register table and the arrows in the Stack Content table.
+Last time we wrote `scale`. Now `main` calls it twice and adds the results:
 
-- **The code addresses match ours** up to the `printf` setup, so `call assign` pushes 0x401153 and `call adder` pushes 0x401158, just like our trace. The stack addresses are different, but they change by the same amounts.
-- **At `adder`'s `movq -8(%rbp), %rax`,** find `%rbp - 8` in the Stack Content table: it still holds `0x28`.
-- **`call printf` runs as one step.** The visualizer doesn't show what `printf` prints, so look for `x` on the stack instead: it holds `0x2A`.
+```c
+int main(void) {
+    long total = scale(1, 2, 3) + scale(4, 5, 6);
+    return total;
+}
+```
 
+`scale(1, 2, 3)` is 5 and `scale(4, 5, 6)` is 26, so `total` should be 31.
 
-## Try It
+Here is `scale` written a little differently. It does its work in `%rcx`, then copies the answer to `%rax`:
 
-Use the trace above.
+```text
+scale:
+  push %rbp               # save main's %rbp
+  mov %rsp, %rbp          # start scale's frame
+  mov %rdi, %rcx          # tmp = x
+  imul %rsi, %rcx         # tmp = x * m
+  add %rdx, %rcx          # tmp = x * m + b
+  mov %rcx, %rax          # result = tmp
+  pop %rbp                # restore main's %rbp
+  ret                     # return result in %rax
+```
 
-1. If `assign` set `y = 100` instead, what would the program print?
-2. Right after `call printf` returns, what is at 0xd28? Is 0x28 still at 0xd18?
-3. Suppose `main` called `adder()` before `assign()`. What would it print?
+**First try:** keep the first result in `%rcx` while `main` makes the second call.
 
 <details class="code-example" markdown="1">
-<summary>Show answers</summary>
+<summary>Show code: first try</summary>
 
-1. `x is: 102`. `adder` reads whatever `assign` left at 0xd18.
-2. 0xd28 holds 0x172, the return address `call printf` pushed. 0xd18 is inside `printf`'s frame, so it was probably overwritten. We can't tell without tracing `printf`.
-3. We can't tell. `adder` would read whatever was at 0xd18 before `main` ran, plus 2. That is why the compiler warns about it.
+```text
+main:
+  push %rbp
+  mov %rsp, %rbp
+  mov $1, %rdi            # x = 1
+  mov $2, %rsi            # m = 2
+  mov $3, %rdx            # b = 3
+  call scale              # %rax = scale(1, 2, 3)
+  mov %rax, %rcx          # keep the first result in %rcx
+  mov $4, %rdi            # x = 4
+  mov $5, %rsi            # m = 5
+  mov $6, %rdx            # b = 6
+  call scale              # %rax = scale(4, 5, 6)
+  add %rcx, %rax          # total = first + second
+  pop %rbp
+  ret
+```
+
+[Open it in the ASM Visualizer](https://asm.diveintosystems.org/function/x86_64/%20%20.text%0A%20%20.globl%09scale%0A%20%20.type%09scale%2C%20%40function%0A%0Ascale%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20main's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20scale's%20frame%0A%20%20mov%20%25rdi%2C%20%25rcx%20%20%20%20%20%20%20%20%20%20%23%20tmp%20%3D%20x%0A%20%20imul%20%25rsi%2C%20%25rcx%20%20%20%20%20%20%20%20%20%23%20tmp%20%3D%20x%20*%20m%0A%20%20add%20%25rdx%2C%20%25rcx%20%20%20%20%20%20%20%20%20%20%23%20tmp%20%3D%20x%20*%20m%20%2B%20b%0A%20%20mov%20%25rcx%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20tmp%0A%20%20pop%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20restore%20main's%20%25rbp%0A%20%20ret%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20return%20result%20in%20%25rax%0A%20%20.size%09scale%2C%20.-scale%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20push%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%0A%20%20mov%20%241%2C%20%25rdi%20%20%20%20%20%20%20%20%20%20%20%20%23%20x%20%3D%201%0A%20%20mov%20%242%2C%20%25rsi%20%20%20%20%20%20%20%20%20%20%20%20%23%20m%20%3D%202%0A%20%20mov%20%243%2C%20%25rdx%20%20%20%20%20%20%20%20%20%20%20%20%23%20b%20%3D%203%0A%20%20call%20scale%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20%25rax%20%3D%20scale(1%2C%202%2C%203)%0A%20%20mov%20%25rax%2C%20%25rcx%20%20%20%20%20%20%20%20%20%20%23%20keep%20the%20first%20result%20in%20%25rcx%0A%20%20mov%20%244%2C%20%25rdi%20%20%20%20%20%20%20%20%20%20%20%20%23%20x%20%3D%204%0A%20%20mov%20%245%2C%20%25rsi%20%20%20%20%20%20%20%20%20%20%20%20%23%20m%20%3D%205%0A%20%20mov%20%246%2C%20%25rdx%20%20%20%20%20%20%20%20%20%20%20%20%23%20b%20%3D%206%0A%20%20call%20scale%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20%25rax%20%3D%20scale(4%2C%205%2C%206)%0A%20%20add%20%25rcx%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%23%20total%20%3D%20first%20%2B%20second%0A%20%20pop%20%25rbp%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A). `%rax` ends at `0x34`, which is 52, not 31.
 
 </details>
 
+- **`scale` changed `%rcx`.** The second call left 26 there, so `main` added 26 + 26.
+- **`scale` is allowed to.** `%rcx` is caller saved: any call can change it. If `main` needs a value after a call, it has to keep it somewhere the call won't touch.
 
+**Fix:** save the first result in `main`'s own frame.
+
+<details class="code-example" markdown="1">
+<summary>Show code: fixed</summary>
+
+```text
+main:
+  push %rbp
+  mov %rsp, %rbp
+  sub $16, %rsp           # room to save a value
+  mov $1, %rdi            # x = 1
+  mov $2, %rsi            # m = 2
+  mov $3, %rdx            # b = 3
+  call scale              # %rax = scale(1, 2, 3)
+  mov %rax, -8(%rbp)      # save the first result on the stack
+  mov $4, %rdi            # x = 4
+  mov $5, %rsi            # m = 5
+  mov $6, %rdx            # b = 6
+  call scale              # %rax = scale(4, 5, 6)
+  add -8(%rbp), %rax      # total = first + second
+  leave
+  ret
+```
+
+[Open it in the ASM Visualizer](https://asm.diveintosystems.org/function/x86_64/%20%20.text%0A%20%20.globl%09scale%0A%20%20.type%09scale%2C%20%40function%0A%0Ascale%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20main's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20scale's%20frame%0A%20%20mov%20%25rdi%2C%20%25rcx%20%20%20%20%20%20%20%20%20%20%23%20tmp%20%3D%20x%0A%20%20imul%20%25rsi%2C%20%25rcx%20%20%20%20%20%20%20%20%20%23%20tmp%20%3D%20x%20*%20m%0A%20%20add%20%25rdx%2C%20%25rcx%20%20%20%20%20%20%20%20%20%20%23%20tmp%20%3D%20x%20*%20m%20%2B%20b%0A%20%20mov%20%25rcx%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20tmp%0A%20%20pop%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20restore%20main's%20%25rbp%0A%20%20ret%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20return%20result%20in%20%25rax%0A%20%20.size%09scale%2C%20.-scale%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20push%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%0A%20%20sub%20%2416%2C%20%25rsp%20%20%20%20%20%20%20%20%20%20%20%23%20room%20to%20save%20a%20value%0A%20%20mov%20%241%2C%20%25rdi%20%20%20%20%20%20%20%20%20%20%20%20%23%20x%20%3D%201%0A%20%20mov%20%242%2C%20%25rsi%20%20%20%20%20%20%20%20%20%20%20%20%23%20m%20%3D%202%0A%20%20mov%20%243%2C%20%25rdx%20%20%20%20%20%20%20%20%20%20%20%20%23%20b%20%3D%203%0A%20%20call%20scale%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20%25rax%20%3D%20scale(1%2C%202%2C%203)%0A%20%20mov%20%25rax%2C%20-8(%25rbp)%20%20%20%20%20%20%23%20save%20the%20first%20result%20on%20the%20stack%0A%20%20mov%20%244%2C%20%25rdi%20%20%20%20%20%20%20%20%20%20%20%20%23%20x%20%3D%204%0A%20%20mov%20%245%2C%20%25rsi%20%20%20%20%20%20%20%20%20%20%20%20%23%20m%20%3D%205%0A%20%20mov%20%246%2C%20%25rdx%20%20%20%20%20%20%20%20%20%20%20%20%23%20b%20%3D%206%0A%20%20call%20scale%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20%25rax%20%3D%20scale(4%2C%205%2C%206)%0A%20%20add%20-8(%25rbp)%2C%20%25rax%20%20%20%20%20%20%23%20total%20%3D%20first%20%2B%20second%0A%20%20leave%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A). `%rax` ends at `0x1F`, which is 31.
+
+</details>
+
+- **`sub $16, %rsp` makes room in `main`'s frame.** Each `call` now pushes below the saved value instead of on top of it. Because `main` moved `%rsp`, it ends with `leave`.
+- **The stack is the safe place.** `scale` only touches its own frame, so `-8(%rbp)` in `main`'s frame survives the call.
 
 Next time you'll trace programs like this one in pairs.

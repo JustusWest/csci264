@@ -7,7 +7,7 @@ published: true
 
 To follow along with the examples, [set up Compiler Explorer]({{ "/godbolt/" | relative_url }}). To run assembly, use the [ASM Visualizer]({{ "/asm-visualizer/" | relative_url }}).
 
-Today we look at functions in Assembly: how one function calls another, how it gets back, and how arguments and return values are passed.
+Today we look at functions in Assembly: how one function calls another, how it gets back, and how arguments and return values are passed. We'll learn each piece by writing a function ourselves.
 
 Three registers run a function call:
 
@@ -23,9 +23,7 @@ Recall from earlier in the course that each function call gets its own **stack f
 
 Now we can say exactly where a frame is: it is the addresses from `%rsp` to `%rbp`.
 
-## How %rip Moves
-
-Here is `adder2` again ([open it in Compiler Explorer](https://godbolt.org/clientstate/eyJzZXNzaW9ucyI6W3siaWQiOjEsImxhbmd1YWdlIjoiYyIsInNvdXJjZSI6IiNpbmNsdWRlIDxzdGRpby5oPlxuXG5sb25nIGFkZGVyMihsb25nIGEpIHtcbiAgICByZXR1cm4gYSArIDI7XG59XG5cbmludCBtYWluKHZvaWQpIHtcbiAgICBsb25nIHggPSA0MDtcbiAgICB4ID0gYWRkZXIyKHgpO1xuICAgIHByaW50ZihcInggaXM6ICVsZFxcblwiLCB4KTtcbiAgICByZXR1cm4gMDtcbn1cbiIsImNvbXBpbGVycyI6W3siaWQiOiJjZzE2MiIsIm9wdGlvbnMiOiIiLCJmaWx0ZXJzIjp7ImJpbmFyeU9iamVjdCI6dHJ1ZSwiaW50ZWwiOmZhbHNlLCJsYWJlbHMiOnRydWUsImxpYnJhcnlDb2RlIjp0cnVlLCJkaXJlY3RpdmVzIjp0cnVlLCJjb21tZW50T25seSI6dHJ1ZSwiZGVtYW5nbGUiOnRydWV9fV19XX0%3D)):
+Here is the function we'll write ([open it in Compiler Explorer](https://godbolt.org/clientstate/eyJzZXNzaW9ucyI6W3siaWQiOjEsImxhbmd1YWdlIjoiYyIsInNvdXJjZSI6IiNpbmNsdWRlIDxzdGRpby5oPlxuXG5sb25nIGFkZGVyMihsb25nIGEpIHtcbiAgICByZXR1cm4gYSArIDI7XG59XG5cbmludCBtYWluKHZvaWQpIHtcbiAgICBsb25nIHggPSA0MDtcbiAgICB4ID0gYWRkZXIyKHgpO1xuICAgIHByaW50ZihcInggaXM6ICVsZFxcblwiLCB4KTtcbiAgICByZXR1cm4gMDtcbn1cbiIsImNvbXBpbGVycyI6W3siaWQiOiJjZzE2MiIsIm9wdGlvbnMiOiIiLCJmaWx0ZXJzIjp7ImJpbmFyeU9iamVjdCI6dHJ1ZSwiaW50ZWwiOmZhbHNlLCJsYWJlbHMiOnRydWUsImxpYnJhcnlDb2RlIjp0cnVlLCJkaXJlY3RpdmVzIjp0cnVlLCJjb21tZW50T25seSI6dHJ1ZSwiZGVtYW5nbGUiOnRydWV9fV19XX0%3D)):
 
 ```c
 long adder2(long a) {
@@ -40,37 +38,11 @@ int main(void) {
 }
 ```
 
-```text
-adder2:
-  401126:  55                      push   %rbp
-  401127:  48 89 e5                mov    %rsp,%rbp
-  40112a:  48 89 7d f8             mov    %rdi,-0x8(%rbp)
-  40112e:  48 8b 45 f8             mov    -0x8(%rbp),%rax
-  401132:  48 83 c0 02             add    $0x2,%rax
-  401136:  5d                      pop    %rbp
-  401137:  c3                      ret
-```
+We'll leave out the `printf`, since the visualizer doesn't show what it prints.
 
-Recall that x86-64 instructions are different sizes, from 1 to 15 bytes. After each instruction, `%rip` goes up by that instruction's length. The byte column tells you how far.
+So far we've used the ASM Visualizer's Arithmetic Mode, which writes the function setup for you and hides it. Today we use **Function Mode**, which hides nothing. You write each function yourself, from its label to its `ret`, plus a `main` that calls it. The lines that start with `.` (`.globl`, `.type`, `.size`) tell the assembler where each function begins and ends. They don't run. Open a [blank Function Mode](https://asm.diveintosystems.org/function/x86_64) to follow along.
 
 ## call, ret, and leave
-
-Here is `main`, up to the call and back:
-
-```text
-main:
-  401138:  55                      push   %rbp
-  401139:  48 89 e5                mov    %rsp,%rbp
-  40113c:  48 83 ec 10             sub    $0x10,%rsp
-  401140:  48 c7 45 f8 28 00 00 00 movq   $0x28,-0x8(%rbp)    # long x = 40;
-  401148:  48 8b 45 f8             mov    -0x8(%rbp),%rax     # x = adder2(x);
-  40114c:  48 89 c7                mov    %rax,%rdi
-  40114f:  e8 d2 ff ff ff          call   adder2
-  401154:  48 89 45 f8             mov    %rax,-0x8(%rbp)
-  ...
-  401178:  c9                      leave
-  401179:  c3                      ret
-```
 
 Programs can't write to `%rip` directly. `call` and `ret` change it for us:
 
@@ -80,80 +52,60 @@ Programs can't write to `%rip` directly. `call` and `ret` change it for us:
 | `ret` | Go back to the saved address | `pop` into `%rip` |
 | `leave` | Throw away this function's frame | `mov %rbp,%rsp`<br>`pop %rbp` |
 
-- **The saved address is the return address.** For this call it is 0x401154, the instruction right after the `call`.
+- **The saved address is the return address,** the instruction right after the `call`.
 - **The return address lives on the stack.** That is how `ret` knows where to go, and why every function has to leave `%rsp` where it found it. If `%rsp` is off by 8 when `ret` runs, it pops the wrong value into `%rip`.
-- **`leave` undoes `push %rbp` and `mov %rsp,%rbp`.** `main` moved `%rsp` with `sub $0x10,%rsp`, so it needs `mov %rbp,%rsp` to throw that space away before it pops. `adder2` never moved `%rsp`, so `pop %rbp` is enough.
+- **`leave` undoes `push %rbp` and `mov %rsp,%rbp`.** A function that moved `%rsp` with `sub` needs `mov %rbp,%rsp` to throw that space away before it pops. A function that never moved `%rsp` can just `pop %rbp`.
 
-## Tracing a Call
+So every function has the same four parts:
 
-Like the book, we drop the leading `0x401` from code addresses, so 0x401154 is just 0x154. `main` has already set up its frame: `%rbp` is 0xd40 and `%rsp` is 0xd30 (16 bytes reserved by `sub $0x10,%rsp`). Each row shows the values *after* that instruction runs. A blank means no change.
+1. **A label** with the function's name. `call` jumps there.
+2. **Set up the frame:** `push %rbp`, then `mov %rsp, %rbp`.
+3. **The body.**
+4. **Clean up and return:** `pop %rbp` and `ret`, or `leave` and `ret` if the function moved `%rsp`.
 
-<div class="board-example" markdown="1">
-<p class="board-title">Example 2 — main calls adder2</p>
+Let's write those parts first, with no body yet. `main` makes room for `x` with `sub`, so it ends with `leave`.
 
-<div class="board-setup" markdown="1">
+<details class="code-example" markdown="1">
+<summary>Show code: step 1, the skeleton</summary>
 
-| Instruction | `%rip` | `%rsp` | `%rbp` | Other changes |
-|---|---|---|---|---|
-| (start) | 0x140 | 0xd30 | 0xd40 | |
-| `movq $0x28,-0x8(%rbp)` | | | | |
-| `mov -0x8(%rbp),%rax` | | | | |
-| `mov %rax,%rdi` | | | | |
-| `call adder2` | | | | |
-| `push %rbp` | | | | |
-| `mov %rsp,%rbp` | | | | |
-| `mov %rdi,-0x8(%rbp)` | | | | |
-| `mov -0x8(%rbp),%rax` | | | | |
-| `add $0x2,%rax` | | | | |
-| `pop %rbp` | | | | |
-| `ret` | | | | |
-| `mov %rax,-0x8(%rbp)` | | | | |
+```text
+  .text
+  .globl	adder2
+  .type	adder2, @function
 
-</div>
+adder2:
+  push %rbp               # save main's %rbp
+  mov %rsp, %rbp          # start adder2's frame
+                          # (the body goes here)
+  pop %rbp                # restore main's %rbp
+  ret                     # go back to main
+  .size	adder2, .-adder2
 
-<details class="board-answer" markdown="1">
-<summary>Answers</summary>
+  .globl	main
+  .type	main, @function
 
-| Instruction | `%rip` | `%rsp` | `%rbp` | Other changes |
-|---|---|---|---|---|
-| (start) | 0x140 | 0xd30 | 0xd40 | |
-| `movq $0x28,-0x8(%rbp)` | 0x148 | | | M[0xd38] = 0x28 (`x`) |
-| `mov -0x8(%rbp),%rax` | 0x14c | | | `%rax` = 0x28 |
-| `mov %rax,%rdi` | 0x14f | | | `%rdi` = 0x28 |
-| `call adder2` | **0x126** | 0xd28 | | M[0xd28] = 0x154 |
-| `push %rbp` | 0x127 | 0xd20 | | M[0xd20] = 0xd40 |
-| `mov %rsp,%rbp` | 0x12a | | 0xd20 | |
-| `mov %rdi,-0x8(%rbp)` | 0x12e | | | M[0xd18] = 0x28 (`a`) |
-| `mov -0x8(%rbp),%rax` | 0x132 | | | `%rax` = 0x28 |
-| `add $0x2,%rax` | 0x136 | | | `%rax` = 0x2a |
-| `pop %rbp` | 0x137 | 0xd28 | 0xd40 | |
-| `ret` | **0x154** | 0xd30 | | |
-| `mov %rax,-0x8(%rbp)` | 0x158 | | | M[0xd38] = 0x2a (`x`) |
+main:
+  push %rbp               # save the caller's %rbp
+  mov %rsp, %rbp          # start main's frame
+  sub $16, %rsp           # room for x
+  call adder2             # adder2();
+  leave                   # throw away main's frame
+  ret
+  .size	main, .-main
+```
+
+[Open it in the ASM Visualizer](https://asm.diveintosystems.org/function/x86_64/%20%20.text%0A%20%20.globl%09adder2%0A%20%20.type%09adder2%2C%20%40function%0A%0Aadder2%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20main's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20adder2's%20frame%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20(the%20body%20goes%20here)%0A%20%20pop%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20restore%20main's%20%25rbp%0A%20%20ret%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20go%20back%20to%20main%0A%20%20.size%09adder2%2C%20.-adder2%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20the%20caller's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20main's%20frame%0A%20%20sub%20%2416%2C%20%25rsp%20%20%20%20%20%20%20%20%20%20%20%23%20room%20for%20x%0A%20%20call%20adder2%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20adder2()%3B%0A%20%20leave%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20throw%20away%20main's%20frame%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A)
 
 </details>
 
-</div>
+## How %rip Moves
 
-Here is the stack right after `mov %rdi,-0x8(%rbp)`, the deepest point. Like the Stack Content table in the ASM Visualizer, the lowest address is at the top:
+Run the skeleton and step through it with **Next**. The Address column shows where each instruction is in memory. The register table doesn't show `%rip`, but the orange arrow marks the instruction it points to.
 
-| Address | Value | |
-|---|---|---|
-| 0xd18 | 0x28 (`a`) | |
-| 0xd20 | 0xd40 (`main`'s `%rbp`) | ← `%rsp`, `%rbp` |
-| 0xd28 | 0x154 (return address) | |
-| 0xd30 | | ← `main`'s `%rsp` |
-| 0xd38 | 0x28 (`x`) | |
-| 0xd40 | (saved by `main`) | ← `main`'s `%rbp` |
-
-- **`adder2`'s frame sits right on top of `main`'s.** Each call adds a frame at lower addresses.
-- **The return address is always at `8(%rbp)`**, and the caller's `%rbp` is at `0(%rbp)`. Every function compiled without optimization has this same layout.
-- **`a` and `x` are both 40, in two different places.** C passes arguments by value: `adder2` gets a copy of `x` in `%rdi`, and puts that copy in its own frame.
-- **After `ret`, `%rsp` and `%rbp` are back to 0xd30 and 0xd40**, exactly what `main` had before the call.
-- **Nothing was erased.** 0xd40, 0x154, and 0x28 are still at 0xd20, 0xd28, and 0xd18. They're just past the top of the stack now, and the next call will overwrite them.
-
-`main` ends the same way, with `leave` and `ret`. `leave` sets `%rsp` to 0xd40 and pops `main`'s caller's `%rbp`, so `%rsp` ends at 0xd48. `ret` pops the return address at 0xd48, which goes back into the C library code that called `main`.
-
-
+- **x86-64 instructions are different sizes, from 1 to 15 bytes.** After each instruction, `%rip` goes up by that instruction's length. `main`'s `push %rbp` at 0x40110C is 1 byte, so the next instruction is at 0x40110D.
+- **`call adder2` is at 0x401114 and is 5 bytes long,** so the instruction after it, `leave`, is at 0x401119. `call` pushes 0x401119 and sets `%rip` to 0x401106, the first instruction of `adder2`. Watch 0x401119 appear at the top of the stack.
+- **`ret` pops 0x401119 into `%rip`,** so `main` picks up at `leave`.
+- **`main`'s `leave` and `ret` work the same way.** `leave` throws away `main`'s frame, and `ret` returns to the code that called `main`.
 
 ## Parameters and Return Values
 
@@ -171,12 +123,8 @@ The first six arguments go in registers, in this order:
 
 The return value goes in `%rax`.
 
-- **The caller loads the registers before the `call`.** In `main` above, `mov %rax,%rdi` puts `x` in the first parameter register.
-- **Without optimization, the callee copies them to its frame right away.** That is the `mov %rdi,-0x8(%rbp)` at the top of `adder2`, and the parameter copies we read last time.
-- **An `int` parameter uses part of the register**, like `%edi` for the first one.
-
 <div class="board-example" markdown="1">
-<p class="board-title">Example 3 — which register?</p>
+<p class="board-title">Example 1 — which register?</p>
 
 Assume `x`, `y`, and `z` are `long` variables. At the `call`, where is each argument?
 
@@ -205,6 +153,50 @@ The register goes by the argument's position, not by its name. In `g(y, x)`, `y`
 
 </div>
 
+Now we can write the body. `a` arrives in `%rdi`, and the result goes back in `%rax`. `main` loads `x` into `%rdi` before the `call`, and stores `%rax` back into `x` after it.
+
+- **The caller loads the registers before the `call`.**
+- **The compiler copies each parameter to the stack right away** when it isn't optimizing. That is the `mov %rdi, -8(%rbp)` at the top of the functions we read last time. We don't need to: `a` can stay in `%rdi`.
+- **An `int` parameter uses part of the register**, like `%edi` for the first one.
+
+<details class="code-example" markdown="1">
+<summary>Show code: step 2, the body</summary>
+
+```text
+  .text
+  .globl	adder2
+  .type	adder2, @function
+
+adder2:
+  push %rbp               # save main's %rbp
+  mov %rsp, %rbp          # start adder2's frame
+  mov %rdi, %rax          # result = a
+  add $2, %rax            # result = a + 2
+  pop %rbp                # restore main's %rbp
+  ret                     # return result in %rax
+  .size	adder2, .-adder2
+
+  .globl	main
+  .type	main, @function
+
+main:
+  push %rbp               # save the caller's %rbp
+  mov %rsp, %rbp          # start main's frame
+  sub $16, %rsp           # room for x
+  movq $40, -8(%rbp)      # long x = 40;
+  mov -8(%rbp), %rdi      # first argument: x
+  call adder2             # %rax = adder2(x)
+  mov %rax, -8(%rbp)      # x = adder2(x);
+  mov $0, %rax            # return 0;
+  leave                   # throw away main's frame
+  ret
+  .size	main, .-main
+```
+
+[Open it in the ASM Visualizer](https://asm.diveintosystems.org/function/x86_64/%20%20.text%0A%20%20.globl%09adder2%0A%20%20.type%09adder2%2C%20%40function%0A%0Aadder2%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20main's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20adder2's%20frame%0A%20%20mov%20%25rdi%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20a%0A%20%20add%20%242%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20a%20%2B%202%0A%20%20pop%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20restore%20main's%20%25rbp%0A%20%20ret%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20return%20result%20in%20%25rax%0A%20%20.size%09adder2%2C%20.-adder2%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20the%20caller's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20main's%20frame%0A%20%20sub%20%2416%2C%20%25rsp%20%20%20%20%20%20%20%20%20%20%20%23%20room%20for%20x%0A%20%20movq%20%2440%2C%20-8(%25rbp)%20%20%20%20%20%20%23%20long%20x%20%3D%2040%3B%0A%20%20mov%20-8(%25rbp)%2C%20%25rdi%20%20%20%20%20%20%23%20first%20argument%3A%20x%0A%20%20call%20adder2%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20%25rax%20%3D%20adder2(x)%0A%20%20mov%20%25rax%2C%20-8(%25rbp)%20%20%20%20%20%20%23%20x%20%3D%20adder2(x)%3B%0A%20%20mov%20%240%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%20%20%23%20return%200%3B%0A%20%20leave%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20throw%20away%20main's%20frame%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A). When it finishes, `%rax` is 0, `main`'s return value, and `x` on the stack is `0x2A`, which is 42.
+
+</details>
+
 ### Saving Registers
 
 There is only one set of registers, and every function uses them. So x86-64 has rules for who has to put a register back:
@@ -212,84 +204,74 @@ There is only one set of registers, and every function uses them. So x86-64 has 
 - **Callee saved:** `%rbx`, `%rbp`, and `%r12` through `%r15`. A function that changes one must restore it before it returns. That is why every function pushes `%rbp` at the start and pops it at the end.
 - **Caller saved:** all the others, including `%rax` and the six parameter registers. Any `call` can change them. If the caller still needs a value in one, it has to save it first.
 
+## The Stack During a Call
 
-## In the ASM Visualizer
+Here is the stack in the visualizer at the deepest point, right after `adder2`'s `mov %rsp, %rbp`. We write just the last three hex digits of each address, so 0x1FFF000AD0 is AD0 and 0x40112C is 12C. Like the visualizer's Stack Content table, the lowest address is at the top:
 
-So far we've used the ASM Visualizer's Arithmetic Mode, which writes the function setup for you and hides it. **Function Mode** hides nothing. You write each function yourself, from its label to its `ret`, plus a `main` that calls them. It starts you with an empty `main` to fill in. The lines that start with `.` (`.globl`, `.type`, `.size`) are part of that starting code: they tell the assembler where each function begins and ends, and they don't run.
+| Address | Value | |
+|---|---|---|
+| AD0 | AF0 (`main`'s `%rbp`) | ← `%rsp`, `%rbp` |
+| AD8 | 12C (return address) | |
+| AE0 | (unused) | ← `main`'s `%rsp` |
+| AE8 | 0x28 (`x`) | |
+| AF0 | 0x1 (`main`'s caller's `%rbp`) | ← `main`'s `%rbp` |
 
-[Open adder2 in Function Mode](https://asm.diveintosystems.org/function/x86_64/%20%20.text%0A%20%20.globl%09adder2%0A%20%20.type%09adder2%2C%20%40function%0A%0Aadder2%3A%0A%20%20push%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%0A%20%20mov%20%25rdi%2C%20-8(%25rbp)%0A%20%20mov%20-8(%25rbp)%2C%20%25rax%0A%20%20add%20%242%2C%20%25rax%0A%20%20pop%20%25rbp%0A%20%20ret%0A%20%20.size%09adder2%2C%20.-adder2%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20push%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%0A%20%20sub%20%2416%2C%20%25rsp%0A%20%20movq%20%2440%2C%20-8(%25rbp)%20%20%20%20%20%20%23%20long%20x%20%3D%2040%3B%0A%20%20mov%20-8(%25rbp)%2C%20%25rax%20%20%20%20%20%20%23%20x%20%3D%20adder2(x)%3B%0A%20%20mov%20%25rax%2C%20%25rdi%0A%20%20call%20adder2%0A%20%20mov%20%25rax%2C%20-8(%25rbp)%0A%20%20mov%20%240%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%20%20%23%20return%200%3B%0A%20%20leave%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A) and click **Run Code**. It is the code from above, without the `printf`. Step with **Next**:
-
-- **The Address column works like a listing.** The register table doesn't show `%rip`, but the orange arrow marks the next instruction, and its address is what `%rip` holds.
-- **At `call adder2`, the return address appears on the stack.** It is 0x401134, the address of the `mov` right after the `call`.
-- **`RSP` and `RBP` move by the same amounts as in our trace:** down 8 on `call`, down 8 on `push %rbp`, and back up 8 each on `pop` and `ret`. The addresses themselves are different from ours.
-
-
+- **`adder2`'s frame sits right on top of `main`'s.** Each call adds a frame at lower addresses.
+- **The return address is always at `8(%rbp)`**, and the caller's `%rbp` is at `0(%rbp)`.
+- **`a` is not on the stack.** C passes arguments by value: `adder2` gets a copy of `x` in `%rdi`, and our `adder2` never stores it.
+- **After `ret`, `%rsp` and `%rbp` are back to AE0 and AF0**, exactly what `main` had before the call.
+- **Nothing was erased.** AF0 and 12C are still at AD0 and AD8 after `ret`. They're just past the top of the stack now, and the next call will overwrite them.
 
 ## Try It
+
+Write this function in Function Mode, with a `main` that calls `scale(5, 3, 1)`:
 
 ```c
 long scale(long x, long m, long b) {
     return x * m + b;
 }
-
-int main(void) {
-    long y = 5;
-    long z = scale(y, 3, 1);
-    printf("z is: %ld\n", z);
-    return 0;
-}
 ```
 
-Here is the start of `main` and all of `scale`, without optimization:
-
-```text
-main:
-    push %rbp
-    mov %rsp, %rbp
-    sub $0x10, %rsp
-    movq $0x5, -16(%rbp)
-    mov -16(%rbp), %rax
-    mov $0x1, %rdx
-    mov $0x3, %rsi
-    mov %rax, %rdi
-    call scale
-    mov %rax, -8(%rbp)
-    ...
-
-scale:
-    push %rbp
-    mov %rsp, %rbp
-    mov %rdi, -8(%rbp)
-    mov %rsi, -16(%rbp)
-    mov %rdx, -24(%rbp)
-    mov -8(%rbp), %rax
-    imul -16(%rbp), %rax
-    mov %rax, %rdx
-    mov -24(%rbp), %rax
-    add %rdx, %rax
-    pop %rbp
-    ret
-```
-
-Just before the `call`, `%rsp` is 0xd30 and `%rbp` is 0xd40. The `mov` right after the `call` is at address 0x171.
-
-1. At the `call`, what is in `%rdi`, `%rsi`, and `%rdx`? Which one did the compiler load first?
-2. When `scale`'s first instruction runs, what is `%rsp`, and what is stored there?
-3. After `mov %rsp, %rbp` in `scale`, where are `x`, `m`, and `b`? Where is the return address?
-4. What does `scale` leave in `%rax`, and where does `main` put it?
+Use the four parts from above. When it finishes, `%rax` should be 16.
 
 <details class="code-example" markdown="1">
-<summary>Show answers</summary>
+<summary>Show code: scale</summary>
 
-1. `%rdi` = 5 (`y`), `%rsi` = 3, `%rdx` = 1. The compiler loaded the third argument first. The order doesn't matter, only which register each one ends up in.
-2. `%rsp` is 0xd28, and 0x171 is stored there. `call` pushed the return address.
-3. `%rbp` is 0xd20. `x` is at `-8(%rbp)` (0xd18), `m` at `-16(%rbp)` (0xd10), and `b` at `-24(%rbp)` (0xd08). The return address is at `8(%rbp)` (0xd28), as in every frame.
-4. `%rax` = 5 × 3 + 1 = 16. `main` stores it in `z`, at `-8(%rbp)` in `main`'s frame.
+```text
+  .text
+  .globl	scale
+  .type	scale, @function
 
-[Open it in Compiler Explorer](https://godbolt.org/clientstate/eyJzZXNzaW9ucyI6W3siaWQiOjEsImxhbmd1YWdlIjoiYyIsInNvdXJjZSI6IiNpbmNsdWRlIDxzdGRpby5oPlxuXG5sb25nIHNjYWxlKGxvbmcgeCwgbG9uZyBtLCBsb25nIGIpIHtcbiAgICByZXR1cm4geCAqIG0gKyBiO1xufVxuXG5pbnQgbWFpbih2b2lkKSB7XG4gICAgbG9uZyB5ID0gNTtcbiAgICBsb25nIHogPSBzY2FsZSh5LCAzLCAxKTtcbiAgICBwcmludGYoXCJ6IGlzOiAlbGRcXG5cIiwgeik7XG4gICAgcmV0dXJuIDA7XG59XG4iLCJjb21waWxlcnMiOlt7ImlkIjoiY2cxNjIiLCJvcHRpb25zIjoiIiwiZmlsdGVycyI6eyJiaW5hcnlPYmplY3QiOnRydWUsImludGVsIjpmYWxzZSwibGFiZWxzIjp0cnVlLCJsaWJyYXJ5Q29kZSI6dHJ1ZSwiZGlyZWN0aXZlcyI6dHJ1ZSwiY29tbWVudE9ubHkiOnRydWUsImRlbWFuZ2xlIjp0cnVlfX1dfV19). The compiler writes `mov $0x1,%edx` and `mov $0x3,%esi`. Writing the 32-bit half of a register clears the top half, so it is the same as using `%rdx` and `%rsi`, and one byte shorter.
+scale:
+  push %rbp               # save main's %rbp
+  mov %rsp, %rbp          # start scale's frame
+  mov %rdi, %rax          # result = x
+  imul %rsi, %rax         # result = x * m
+  add %rdx, %rax          # result = x * m + b
+  pop %rbp                # restore main's %rbp
+  ret                     # return result in %rax
+  .size	scale, .-scale
+
+  .globl	main
+  .type	main, @function
+
+main:
+  push %rbp
+  mov %rsp, %rbp
+  mov $5, %rdi            # x = 5
+  mov $3, %rsi            # m = 3
+  mov $1, %rdx            # b = 1
+  call scale              # %rax = scale(5, 3, 1)
+  pop %rbp
+  ret
+  .size	main, .-main
+```
+
+[Open it in the ASM Visualizer](https://asm.diveintosystems.org/function/x86_64/%20%20.text%0A%20%20.globl%09scale%0A%20%20.type%09scale%2C%20%40function%0A%0Ascale%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20main's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20scale's%20frame%0A%20%20mov%20%25rdi%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20x%0A%20%20imul%20%25rsi%2C%20%25rax%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20x%20*%20m%0A%20%20add%20%25rdx%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20x%20*%20m%20%2B%20b%0A%20%20pop%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20restore%20main's%20%25rbp%0A%20%20ret%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20return%20result%20in%20%25rax%0A%20%20.size%09scale%2C%20.-scale%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20push%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%0A%20%20mov%20%245%2C%20%25rdi%20%20%20%20%20%20%20%20%20%20%20%20%23%20x%20%3D%205%0A%20%20mov%20%243%2C%20%25rsi%20%20%20%20%20%20%20%20%20%20%20%20%23%20m%20%3D%203%0A%20%20mov%20%241%2C%20%25rdx%20%20%20%20%20%20%20%20%20%20%20%20%23%20b%20%3D%201%0A%20%20call%20scale%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20%25rax%20%3D%20scale(5%2C%203%2C%201)%0A%20%20pop%20%25rbp%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A)
+
+- **`x`, `m`, and `b` arrive in `%rdi`, `%rsi`, and `%rdx`,** the first three parameter registers.
+- **`main` can load the three registers in any order.** Only which register each value ends up in matters.
 
 </details>
-
-
 
 Next time we trace the book's `assign` and `adder` program, one frame at a time.

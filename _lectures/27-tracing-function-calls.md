@@ -1,5 +1,5 @@
 ---
-title: "27 Tracing Function Calls"
+title: "27 Writing and Tracing Functions"
 published: true
 ---
 
@@ -7,19 +7,20 @@ published: true
 
 To check your answers, [set up Compiler Explorer]({{ "/godbolt/" | relative_url }}). To run assembly, use the [ASM Visualizer]({{ "/asm-visualizer/" | relative_url }}).
 
-Last time we traced the `assign`/`adder` program from start to finish. Now it's your turn: each problem below is a short program compiled by `gcc`. Your job is to trace what happens to the registers and the stack.
+These are the two kinds of problems you'll see on Midterm 2: write the assembly for a C function, and answer questions about what a program does to the registers and the stack.
 
-The listings are the compiler's code without optimization, cleaned up a little: they use the 64-bit registers and function names instead of call addresses. As before, code addresses drop the leading `0x401`, and the stack addresses are made up.
+Work in pairs, write your functions in a [blank Function Mode](https://asm.diveintosystems.org/function/x86_64). Trace the register and stack values on paper, then check them with the visualizer.
 
-Work in pairs, on paper.
+## Writing a Function
+
+1. **A label** with the function's name.
+2. **Set up the frame:** `push %rbp`, then `mov %rsp, %rbp`.
+3. **The body.** The arguments arrive in `%rdi`, `%rsi`, and `%rdx`, in that order. Leave the return value in `%rax`.
+4. **Clean up and return:** `pop %rbp` and `ret`, or `leave` and `ret` if the function moved `%rsp`.
+
+- **A call can change `%rax`, `%rcx`, `%rdx`, `%rsi`, `%rdi`, and `%r8` through `%r11`.** If you need a value after a call, save it in your own frame: make room with `sub`, store it at `-8(%rbp)`, and end with `leave`.
 
 ## Tracing a Program
-
-1. **Write down the starting values** of `%rip`, `%rsp`, and `%rbp`.
-2. **Follow `%rip`, not the listing.** After a `call`, the next row is the first line of the function being called.
-3. **Fill in only what changes.**
-4. **Draw the stack next to the table.** Never erase a value. Cross it out only when something overwrites it.
-5. **Check at every `ret`.** `%rsp` and `%rbp` should be back to what they were before the `call`.
 
 | Instruction | What changes |
 |---|---|
@@ -31,131 +32,68 @@ Work in pairs, on paper.
 | `ret` | the top is copied to `%rip`, then `%rsp` goes up 8 |
 | `leave` | `%rsp` = `%rbp`, then `pop %rbp` |
 
-Recall that the first argument goes in `%rdi`, the second in `%rsi`, the third in `%rdx`, and the return value comes back in `%rax`.
+Whatever is inside a function, `call` and `push %rbp` each move `%rsp` down 8, and after `ret` everything is back where it was.
 
 ## Problem 1
 
 <div class="board-example" markdown="1">
-<p class="board-title">Problem 1 — calling a function twice</p>
-
-```c
-long add10(long n) {
-    return n + 10;
-}
-
-int main(void) {
-    long a = add10(5);
-    long b = add10(a);
-    printf("%ld %ld\n", a, b);
-    return 0;
-}
-```
-
-```text
-add10:
-  401126:  push   %rbp
-  401127:  mov    %rsp,%rbp
-  40112a:  mov    %rdi,-0x8(%rbp)
-  40112e:  mov    -0x8(%rbp),%rax
-  401132:  add    $0xa,%rax
-  401136:  pop    %rbp
-  401137:  ret
-
-main:
-  401138:  push   %rbp
-  401139:  mov    %rsp,%rbp
-  40113c:  sub    $0x10,%rsp
-  401140:  mov    $0x5,%rdi
-  401145:  call   add10
-  40114a:  mov    %rax,-0x10(%rbp)
-  40114e:  mov    -0x10(%rbp),%rax
-  401152:  mov    %rax,%rdi
-  401155:  call   add10
-  40115a:  mov    %rax,-0x8(%rbp)
-  40115e:  mov    -0x8(%rbp),%rdx
-  401162:  mov    -0x10(%rbp),%rax
-  401166:  mov    %rax,%rsi
-  401169:  mov    $0x402004,%rdi
-  40116e:  mov    $0x0,%rax
-  401173:  call   printf
-  401178:  mov    $0x0,%rax
-  40117d:  leave
-  40117e:  ret
-```
-
-`main` has already set up its frame. Fill in the table, then answer the questions.
+<p class="board-title">Problem 1 — perimeter</p>
 
 <div class="board-setup" markdown="1">
 
-| Address | Instruction | `%rip` | `%rsp` | `%rbp` | Other changes |
-|---|---|---|---|---|---|
-|  | (start) | 0x140 | 0xd30 | 0xd40 | |
-| 0x140 | `mov $0x5,%rdi` | | | | |
-| 0x145 | `call add10` | | | | |
-| 0x126 | `push %rbp` | | | | |
-| 0x127 | `mov %rsp,%rbp` | | | | |
-| 0x12a | `mov %rdi,-0x8(%rbp)` | | | | |
-| 0x12e | `mov -0x8(%rbp),%rax` | | | | |
-| 0x132 | `add $0xa,%rax` | | | | |
-| 0x136 | `pop %rbp` | | | | |
-| 0x137 | `ret` | | | | |
-| 0x14a | `mov %rax,-0x10(%rbp)` | | | | |
-| 0x14e | `mov -0x10(%rbp),%rax` | | | | |
-| 0x152 | `mov %rax,%rdi` | | | | |
-| 0x155 | `call add10` | | | | |
-| 0x126 | `push %rbp` | | | | |
-| 0x127 | `mov %rsp,%rbp` | | | | |
-| 0x12a | `mov %rdi,-0x8(%rbp)` | | | | |
-| 0x12e | `mov -0x8(%rbp),%rax` | | | | |
-| 0x132 | `add $0xa,%rax` | | | | |
-| 0x136 | `pop %rbp` | | | | |
-| 0x137 | `ret` | | | | |
-| 0x15a | `mov %rax,-0x8(%rbp)` | | | | |
+```c
+long perimeter(long w, long h) {
+    return 2 * (w + h);
+}
+```
 
-1. What return address does each `call` push?
-2. Where is `n` each time `add10` runs?
-3. What does the program print?
+1. Write `perimeter` in assembly, and a `main` that calls `perimeter(6, 7)`.
+2. Just before the `call`, `%rsp` is 0xd30 and `%rbp` is 0xd40. Fill in the table.
+3. What is in `%rax` after `ret`?
+
+| Point | `%rsp` | `%rbp` | Top of the stack |
+|---|---|---|---|
+| Right after `call` | | | |
+| Right after `perimeter`'s `mov %rsp, %rbp` | | | |
+| Right after `ret` | | | |
 
 </div>
 
 <details class="board-answer" markdown="1">
 <summary>Answers</summary>
 
-| Address | Instruction | `%rip` | `%rsp` | `%rbp` | Other changes |
-|---|---|---|---|---|---|
-|  | (start) | 0x140 | 0xd30 | 0xd40 | |
-| 0x140 | `mov $0x5,%rdi` | 0x145 | | | `%rdi` = 5 |
-| 0x145 | `call add10` | **0x126** | 0xd28 | | M[0xd28] = 0x14a |
-| 0x126 | `push %rbp` | 0x127 | 0xd20 | | M[0xd20] = 0xd40 |
-| 0x127 | `mov %rsp,%rbp` | 0x12a | | 0xd20 | |
-| 0x12a | `mov %rdi,-0x8(%rbp)` | 0x12e | | | M[0xd18] = 5 (`n`) |
-| 0x12e | `mov -0x8(%rbp),%rax` | 0x132 | | | `%rax` = 5 |
-| 0x132 | `add $0xa,%rax` | 0x136 | | | `%rax` = 0xf |
-| 0x136 | `pop %rbp` | 0x137 | 0xd28 | 0xd40 | |
-| 0x137 | `ret` | **0x14a** | 0xd30 | | |
-| 0x14a | `mov %rax,-0x10(%rbp)` | 0x14e | | | M[0xd30] = 0xf (`a`) |
-| 0x14e | `mov -0x10(%rbp),%rax` | 0x152 | | | `%rax` = 0xf |
-| 0x152 | `mov %rax,%rdi` | 0x155 | | | `%rdi` = 0xf |
-| 0x155 | `call add10` | **0x126** | 0xd28 | | M[0xd28] = 0x15a |
-| 0x126 | `push %rbp` | 0x127 | 0xd20 | | M[0xd20] = 0xd40 |
-| 0x127 | `mov %rsp,%rbp` | 0x12a | | 0xd20 | |
-| 0x12a | `mov %rdi,-0x8(%rbp)` | 0x12e | | | M[0xd18] = 0xf (`n`) |
-| 0x12e | `mov -0x8(%rbp),%rax` | 0x132 | | | `%rax` = 0xf |
-| 0x132 | `add $0xa,%rax` | 0x136 | | | `%rax` = 0x19 |
-| 0x136 | `pop %rbp` | 0x137 | 0xd28 | 0xd40 | |
-| 0x137 | `ret` | **0x15a** | 0xd30 | | |
-| 0x15a | `mov %rax,-0x8(%rbp)` | 0x15e | | | M[0xd38] = 0x19 (`b`) |
+```text
+perimeter:
+  push %rbp               # save main's %rbp
+  mov %rsp, %rbp          # start perimeter's frame
+  mov %rdi, %rax          # result = w
+  add %rsi, %rax          # result = w + h
+  add %rax, %rax          # result = 2 * (w + h)
+  pop %rbp                # restore main's %rbp
+  ret                     # return result in %rax
 
-1. The first `call` pushes 0x14a and the second pushes 0x15a. Each is the address of the instruction right after that `call`.
-2. At 0xd18 both times. It holds 5 the first time and 15 the second.
-3. `15 25`.
+main:
+  push %rbp
+  mov %rsp, %rbp
+  mov $6, %rdi            # w = 6
+  mov $7, %rsi            # h = 7
+  call perimeter          # %rax = perimeter(6, 7)
+  pop %rbp
+  ret
+```
 
-- **Both calls get the same frame.** `%rbp` is 0xd20 both times, so the second call's `n` overwrites the first call's.
-- **Only the return address is different.** It is how the same `ret` goes back to two different places.
-- **`a` is at 0xd30, right where `%rsp` points.** Each `call` pushes at 0xd28, just below it, so `a` is safe. That's why `main` moved `%rsp` with `sub` before calling anything.
-- **`printf` gets three arguments:** the format string in `%rdi`, `a` in `%rsi`, and `b` in `%rdx`. The compiler loaded `%rdx` first. The order doesn't matter, only which register each one ends up in.
+[Open it in the ASM Visualizer](https://asm.diveintosystems.org/function/x86_64/%20%20.text%0A%20%20.globl%09perimeter%0A%20%20.type%09perimeter%2C%20%40function%0A%0Aperimeter%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20main's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20perimeter's%20frame%0A%20%20mov%20%25rdi%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20w%0A%20%20add%20%25rsi%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20w%20%2B%20h%0A%20%20add%20%25rax%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%23%20result%20%3D%202%20*%20(w%20%2B%20h)%0A%20%20pop%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20restore%20main's%20%25rbp%0A%20%20ret%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20return%20result%20in%20%25rax%0A%20%20.size%09perimeter%2C%20.-perimeter%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20push%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%0A%20%20mov%20%246%2C%20%25rdi%20%20%20%20%20%20%20%20%20%20%20%20%23%20w%20%3D%206%0A%20%20mov%20%247%2C%20%25rsi%20%20%20%20%20%20%20%20%20%20%20%20%23%20h%20%3D%207%0A%20%20call%20perimeter%20%20%20%20%20%20%20%20%20%20%23%20%25rax%20%3D%20perimeter(6%2C%207)%0A%20%20pop%20%25rbp%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A%0A)
 
-[Open it in Compiler Explorer](https://godbolt.org/clientstate/eyJzZXNzaW9ucyI6W3siaWQiOjEsImxhbmd1YWdlIjoiYyIsInNvdXJjZSI6IiNpbmNsdWRlIDxzdGRpby5oPlxuXG5sb25nIGFkZDEwKGxvbmcgbikge1xuICAgIHJldHVybiBuICsgMTA7XG59XG5cbmludCBtYWluKHZvaWQpIHtcbiAgICBsb25nIGEgPSBhZGQxMCg1KTtcbiAgICBsb25nIGIgPSBhZGQxMChhKTtcbiAgICBwcmludGYoXCIlbGQgJWxkXFxuXCIsIGEsIGIpO1xuICAgIHJldHVybiAwO1xufVxuIiwiY29tcGlsZXJzIjpbeyJpZCI6ImNnMTYyIiwib3B0aW9ucyI6IiIsImZpbHRlcnMiOnsiYmluYXJ5T2JqZWN0Ijp0cnVlLCJpbnRlbCI6ZmFsc2UsImxhYmVscyI6dHJ1ZSwibGlicmFyeUNvZGUiOnRydWUsImRpcmVjdGl2ZXMiOnRydWUsImNvbW1lbnRPbmx5Ijp0cnVlLCJkZW1hbmdsZSI6dHJ1ZX19XX1dfQ%3D%3D) or [run it in the ASM Visualizer](https://asm.diveintosystems.org/function/x86_64/%20%20.section%20.rodata%0A.LC0%3A%0A%20%20.string%20%22%25ld%20%25ld%5Cn%22%0A%0A%20%20.text%0A%20%20.globl%09add10%0A%20%20.type%09add10%2C%20%40function%0A%0Aadd10%3A%0A%20%20pushq%20%25rbp%0A%20%20movq%20%25rsp%2C%20%25rbp%0A%20%20movq%20%25rdi%2C%20-8(%25rbp)%0A%20%20movq%20-8(%25rbp)%2C%20%25rax%0A%20%20addq%20%2410%2C%20%25rax%0A%20%20popq%20%25rbp%0A%20%20ret%0A%20%20.size%09add10%2C%20.-add10%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20pushq%20%25rbp%0A%20%20movq%20%25rsp%2C%20%25rbp%0A%20%20subq%20%2416%2C%20%25rsp%0A%20%20movq%20%245%2C%20%25rdi%0A%20%20call%20add10%0A%20%20movq%20%25rax%2C%20-16(%25rbp)%0A%20%20movq%20-16(%25rbp)%2C%20%25rax%0A%20%20movq%20%25rax%2C%20%25rdi%0A%20%20call%20add10%0A%20%20movq%20%25rax%2C%20-8(%25rbp)%0A%20%20movq%20-8(%25rbp)%2C%20%25rdx%0A%20%20movq%20-16(%25rbp)%2C%20%25rax%0A%20%20movq%20%25rax%2C%20%25rsi%0A%20%20movq%20%24.LC0%2C%20%25rdi%0A%20%20movq%20%240%2C%20%25rax%0A%20%20call%20printf%0A%20%20movq%20%240%2C%20%25rax%0A%20%20leave%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A). The stack addresses are different in the visualizer, but `%rsp` and `%rbp` move by the same amounts. `call printf` runs as one step, and the visualizer doesn't show what it prints, so check `a` and `b` on the stack instead.
+| Point | `%rsp` | `%rbp` | Top of the stack |
+|---|---|---|---|
+| Right after `call` | 0xd28 | 0xd40 | the return address: the address of the instruction after the `call` |
+| Right after `perimeter`'s `mov %rsp, %rbp` | 0xd20 | 0xd20 | 0xd40, `main`'s `%rbp` |
+| Right after `ret` | 0xd30 | 0xd40 | whatever `main` had there |
+
+`%rax` is 26.
+
+- **Adding a number to itself doubles it,** so `add %rax, %rax` is `2 * (w + h)`. `imul $2, %rax` or `shl $1, %rax` work too.
+- **The table doesn't depend on the body.** Whatever `perimeter` does in between, `call` and `push %rbp` move `%rsp` the same way.
 
 </details>
 
@@ -164,132 +102,62 @@ main:
 ## Problem 2
 
 <div class="board-example" markdown="1">
-<p class="board-title">Problem 2 — a call inside a call</p>
-
-```c
-long add(long x, long y) {
-    return x + y;
-}
-
-long sum3(long a, long b, long c) {
-    long t = add(a, b);
-    return add(t, c);
-}
-
-int main(void) {
-    long r = sum3(1, 2, 3);
-    printf("%ld\n", r);
-    return 0;
-}
-```
-
-```text
-add:
-  401126:  push   %rbp
-  401127:  mov    %rsp,%rbp
-  40112a:  mov    %rdi,-0x8(%rbp)
-  40112e:  mov    %rsi,-0x10(%rbp)
-  401132:  mov    -0x8(%rbp),%rdx
-  401136:  mov    -0x10(%rbp),%rax
-  40113a:  add    %rdx,%rax
-  40113d:  pop    %rbp
-  40113e:  ret
-
-sum3:
-  40113f:  push   %rbp
-  401140:  mov    %rsp,%rbp
-  401143:  sub    $0x28,%rsp
-  401147:  mov    %rdi,-0x18(%rbp)
-  40114b:  mov    %rsi,-0x20(%rbp)
-  40114f:  mov    %rdx,-0x28(%rbp)
-  401153:  mov    -0x20(%rbp),%rdx
-  401157:  mov    -0x18(%rbp),%rax
-  40115b:  mov    %rdx,%rsi
-  40115e:  mov    %rax,%rdi
-  401161:  call   add
-  401166:  mov    %rax,-0x8(%rbp)
-  40116a:  mov    -0x28(%rbp),%rdx
-  40116e:  mov    -0x8(%rbp),%rax
-  401172:  mov    %rdx,%rsi
-  401175:  mov    %rax,%rdi
-  401178:  call   add
-  40117d:  leave
-  40117e:  ret
-
-main:
-  40117f:  push   %rbp
-  401180:  mov    %rsp,%rbp
-  401183:  sub    $0x10,%rsp
-  401187:  mov    $0x3,%rdx
-  40118c:  mov    $0x2,%rsi
-  401191:  mov    $0x1,%rdi
-  401196:  call   sum3
-  40119b:  mov    %rax,-0x8(%rbp)
-  ...
-```
-
-Just before `call sum3`, `%rsp` is 0xd30 and `%rbp` is 0xd40.
+<p class="board-title">Problem 2 — abs_diff</p>
 
 <div class="board-setup" markdown="1">
 
-1. Draw the stack the **first** time `add` runs, right after `mov %rsi,-0x10(%rbp)`. Label every value. What are `%rsp` and `%rbp`?
-2. `sum3` has `sub $0x28,%rsp` and ends with `leave`. `add` has neither. Why?
-3. Start at `add`'s `%rbp` and follow the saved `%rbp` values. Where do you end up?
-4. What changes on the stack for the second call to `add`?
-5. `sum3` ends with `return add(t, c);`. Which instruction puts `sum3`'s return value in `%rax`?
+```c
+long abs_diff(long x, long y) {
+    if (x > y) {
+        return x - y;
+    }
+    return y - x;
+}
+```
 
-For question 1:
-
-| Address | Value | |
-|---|---|---|
-| 0xcd8 | | |
-| 0xce0 | | |
-| 0xce8 | | |
-| 0xcf0 | | |
-| 0xcf8 | | |
-| 0xd00 | | |
-| 0xd08 | | |
-| 0xd10 | | |
-| 0xd18 | | |
-| 0xd20 | | |
-| 0xd28 | | |
-| 0xd30 | | |
-| 0xd38 | | |
-| 0xd40 | | |
+1. Write `abs_diff` in assembly, and a `main` that calls `abs_diff(3, 10)`.
+2. For `abs_diff(3, 10)`, list the instructions in `abs_diff` that run, in order. What is `%rax` after each one that changes it?
+3. Which instructions run instead for `abs_diff(10, 3)`?
 
 </div>
 
 <details class="board-answer" markdown="1">
 <summary>Answers</summary>
 
-1. `%rsp` and `%rbp` are both 0xce8. The stack is in the table below.
-2. `add` calls nothing, so nothing will be pushed on top of its variables. It can leave `%rsp` where it is. `sum3` calls `add`, and `call` pushes at `%rsp`. If `%rsp` were still 0xd20, the return address would land on `t` at 0xd18. So `sum3` moves `%rsp` below its variables first, and `leave` puts it back.
-3. 0xce8 holds 0xd20, `sum3`'s `%rbp`. 0xd20 holds 0xd40, `main`'s `%rbp`. 0xd40 holds the `%rbp` of whatever called `main`. The saved `%rbp` values link every frame on the stack, newest to oldest.
-4. Everything is at the same addresses, because `sum3`'s `%rsp` hasn't moved. The return address at 0xcf0 is now 0x17d, `x` is 3 (`t`), and `y` is 3 (`c`). `t` = 3 is at 0xd18.
-5. `add`'s `add %rdx,%rax`, the second time `add` runs. `sum3` doesn't touch `%rax` after the second call, and `leave` and `ret` don't change it. So `%rax` = 6 goes straight back to `main`, and the program prints `6`.
+```text
+abs_diff:
+  push %rbp               # save main's %rbp
+  mov %rsp, %rbp          # start abs_diff's frame
+  cmp %rsi, %rdi          # compare x with y
+  jle abs_else            # if x <= y, go to the else
+  mov %rdi, %rax          # result = x
+  sub %rsi, %rax          # result = x - y
+  jmp abs_done            # skip the else
+abs_else:
+  mov %rsi, %rax          # result = y
+  sub %rdi, %rax          # result = y - x
+abs_done:
+  pop %rbp                # restore main's %rbp
+  ret                     # return result in %rax
 
-| Address | Value | |
-|---|---|---|
-| 0xcd8 | 2 (`y`) | |
-| 0xce0 | 1 (`x`) | |
-| 0xce8 | 0xd20 (`sum3`'s `%rbp`) | ← `%rsp`, `%rbp` |
-| 0xcf0 | 0x166 (return address into `sum3`) | |
-| 0xcf8 | 3 (`c`) | ← `sum3`'s `%rsp` |
-| 0xd00 | 2 (`b`) | |
-| 0xd08 | 1 (`a`) | |
-| 0xd10 | (unused) | |
-| 0xd18 | (`t`, not set yet) | |
-| 0xd20 | 0xd40 (`main`'s `%rbp`) | ← `sum3`'s `%rbp` |
-| 0xd28 | 0x19b (return address into `main`) | |
-| 0xd30 | | ← `main`'s `%rsp` |
-| 0xd38 | (`r`, not set yet) | |
-| 0xd40 | (saved by `main`) | ← `main`'s `%rbp` |
+main:
+  push %rbp
+  mov %rsp, %rbp
+  mov $3, %rdi            # x = 3
+  mov $10, %rsi           # y = 10
+  call abs_diff           # %rax = abs_diff(3, 10)
+  pop %rbp
+  ret
+```
 
-- **Three frames, one on top of the next.** Each has the same layout: the return address at `8(%rbp)` and the caller's `%rbp` at `0(%rbp)`.
-- **A function that calls another has `sub` and `leave`.** A function that calls nothing just has `pop %rbp`.
-- **The compiler doesn't always pack a frame tightly.** Nothing uses 0xd10.
+[Open it in the ASM Visualizer](https://asm.diveintosystems.org/function/x86_64/%20%20.text%0A%20%20.globl%09abs_diff%0A%20%20.type%09abs_diff%2C%20%40function%0A%0Aabs_diff%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20main's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20abs_diff's%20frame%0A%20%20cmp%20%25rsi%2C%20%25rdi%20%20%20%20%20%20%20%20%20%20%23%20compare%20x%20with%20y%0A%20%20jle%20abs_else%20%20%20%20%20%20%20%20%20%20%20%20%23%20if%20x%20%3C%3D%20y%2C%20go%20to%20the%20else%0A%20%20mov%20%25rdi%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20x%0A%20%20sub%20%25rsi%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20x%20-%20y%0A%20%20jmp%20abs_done%20%20%20%20%20%20%20%20%20%20%20%20%23%20skip%20the%20else%0Aabs_else%3A%0A%20%20mov%20%25rsi%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20y%0A%20%20sub%20%25rdi%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20y%20-%20x%0Aabs_done%3A%0A%20%20pop%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20restore%20main's%20%25rbp%0A%20%20ret%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20return%20result%20in%20%25rax%0A%20%20.size%09abs_diff%2C%20.-abs_diff%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20push%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%0A%20%20mov%20%243%2C%20%25rdi%20%20%20%20%20%20%20%20%20%20%20%20%23%20x%20%3D%203%0A%20%20mov%20%2410%2C%20%25rsi%20%20%20%20%20%20%20%20%20%20%20%23%20y%20%3D%2010%0A%20%20call%20abs_diff%20%20%20%20%20%20%20%20%20%20%20%23%20%25rax%20%3D%20abs_diff(3%2C%2010)%0A%20%20pop%20%25rbp%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A%0A)
 
-[Open it in Compiler Explorer](https://godbolt.org/clientstate/eyJzZXNzaW9ucyI6W3siaWQiOjEsImxhbmd1YWdlIjoiYyIsInNvdXJjZSI6IiNpbmNsdWRlIDxzdGRpby5oPlxuXG5sb25nIGFkZChsb25nIHgsIGxvbmcgeSkge1xuICAgIHJldHVybiB4ICsgeTtcbn1cblxubG9uZyBzdW0zKGxvbmcgYSwgbG9uZyBiLCBsb25nIGMpIHtcbiAgICBsb25nIHQgPSBhZGQoYSwgYik7XG4gICAgcmV0dXJuIGFkZCh0LCBjKTtcbn1cblxuaW50IG1haW4odm9pZCkge1xuICAgIGxvbmcgciA9IHN1bTMoMSwgMiwgMyk7XG4gICAgcHJpbnRmKFwiJWxkXFxuXCIsIHIpO1xuICAgIHJldHVybiAwO1xufVxuIiwiY29tcGlsZXJzIjpbeyJpZCI6ImNnMTYyIiwib3B0aW9ucyI6IiIsImZpbHRlcnMiOnsiYmluYXJ5T2JqZWN0Ijp0cnVlLCJpbnRlbCI6ZmFsc2UsImxhYmVscyI6dHJ1ZSwibGlicmFyeUNvZGUiOnRydWUsImRpcmVjdGl2ZXMiOnRydWUsImNvbW1lbnRPbmx5Ijp0cnVlLCJkZW1hbmdsZSI6dHJ1ZX19XX1dfQ%3D%3D) or [run it in the ASM Visualizer](https://asm.diveintosystems.org/function/x86_64/%20%20.section%20.rodata%0A.LC0%3A%0A%20%20.string%20%22%25ld%5Cn%22%0A%0A%20%20.text%0A%20%20.globl%09add%0A%20%20.type%09add%2C%20%40function%0A%0Aadd%3A%0A%20%20pushq%20%25rbp%0A%20%20movq%20%25rsp%2C%20%25rbp%0A%20%20movq%20%25rdi%2C%20-8(%25rbp)%0A%20%20movq%20%25rsi%2C%20-16(%25rbp)%0A%20%20movq%20-8(%25rbp)%2C%20%25rdx%0A%20%20movq%20-16(%25rbp)%2C%20%25rax%0A%20%20addq%20%25rdx%2C%20%25rax%0A%20%20popq%20%25rbp%0A%20%20ret%0A%20%20.size%09add%2C%20.-add%0A%0A%20%20.globl%09sum3%0A%20%20.type%09sum3%2C%20%40function%0A%0Asum3%3A%0A%20%20pushq%20%25rbp%0A%20%20movq%20%25rsp%2C%20%25rbp%0A%20%20subq%20%2440%2C%20%25rsp%0A%20%20movq%20%25rdi%2C%20-24(%25rbp)%0A%20%20movq%20%25rsi%2C%20-32(%25rbp)%0A%20%20movq%20%25rdx%2C%20-40(%25rbp)%0A%20%20movq%20-32(%25rbp)%2C%20%25rdx%0A%20%20movq%20-24(%25rbp)%2C%20%25rax%0A%20%20movq%20%25rdx%2C%20%25rsi%0A%20%20movq%20%25rax%2C%20%25rdi%0A%20%20call%20add%0A%20%20movq%20%25rax%2C%20-8(%25rbp)%0A%20%20movq%20-40(%25rbp)%2C%20%25rdx%0A%20%20movq%20-8(%25rbp)%2C%20%25rax%0A%20%20movq%20%25rdx%2C%20%25rsi%0A%20%20movq%20%25rax%2C%20%25rdi%0A%20%20call%20add%0A%20%20leave%0A%20%20ret%0A%20%20.size%09sum3%2C%20.-sum3%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20pushq%20%25rbp%0A%20%20movq%20%25rsp%2C%20%25rbp%0A%20%20subq%20%2416%2C%20%25rsp%0A%20%20movq%20%243%2C%20%25rdx%0A%20%20movq%20%242%2C%20%25rsi%0A%20%20movq%20%241%2C%20%25rdi%0A%20%20call%20sum3%0A%20%20movq%20%25rax%2C%20-8(%25rbp)%0A%20%20movq%20-8(%25rbp)%2C%20%25rax%0A%20%20movq%20%25rax%2C%20%25rsi%0A%20%20movq%20%24.LC0%2C%20%25rdi%0A%20%20movq%20%240%2C%20%25rax%0A%20%20call%20printf%0A%20%20movq%20%240%2C%20%25rax%0A%20%20leave%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A).
+For `abs_diff(3, 10)`: `push`, `mov`, `cmp`, `jle` (it jumps), `mov %rsi, %rax` (`%rax` = 10), `sub %rdi, %rax` (`%rax` = 7), `pop`, `ret`.
+
+For `abs_diff(10, 3)`: `push`, `mov`, `cmp`, `jle` (it doesn't jump), `mov %rdi, %rax` (`%rax` = 10), `sub %rsi, %rax` (`%rax` = 7), `jmp`, `pop`, `ret`.
+
+- **The `if` is a compare and a jump, as before.** `cmp %rsi, %rdi` computes `x - y`, so `jle` jumps to the `else` when `x <= y`: the C condition, flipped.
+- **Two `ret`s is fine too.** Each branch can end with its own `pop %rbp` and `ret`.
 
 </details>
 
@@ -298,7 +166,92 @@ For question 1:
 ## Problem 3
 
 <div class="board-example" markdown="1">
-<p class="board-title">Problem 3 — what does it print?</p>
+<p class="board-title">Problem 3 — a function that calls a function</p>
+
+<div class="board-setup" markdown="1">
+
+```c
+long sq(long n) {
+    return n * n;
+}
+
+long dist2(long x, long y) {
+    return sq(x) + sq(y);
+}
+```
+
+1. Write `sq`, `dist2`, and a `main` that calls `dist2(3, 4)`. `dist2` calls another function, so think about which values it still needs after each call.
+2. Just before `main`'s `call dist2`, `%rsp` is 0xd30 and `%rbp` is 0xd40. Using your code, draw the stack during the **first** call to `sq`, right after `sq`'s `mov %rsp, %rbp`. Label every slot, and mark where `%rsp` and `%rbp` point.
+3. Why does `dist2` need `sub` and `leave` when `sq` doesn't?
+
+</div>
+
+<details class="board-answer" markdown="1">
+<summary>Answers</summary>
+
+```text
+sq:
+  push %rbp               # save the caller's %rbp
+  mov %rsp, %rbp          # start sq's frame
+  mov %rdi, %rax          # result = n
+  imul %rdi, %rax         # result = n * n
+  pop %rbp                # restore the caller's %rbp
+  ret                     # return result in %rax
+
+dist2:
+  push %rbp               # save main's %rbp
+  mov %rsp, %rbp          # start dist2's frame
+  sub $16, %rsp           # room for y and sq(x)
+  mov %rsi, -8(%rbp)      # save y: a call can change %rsi
+  call sq                 # %rax = sq(x); x is already in %rdi
+  mov %rax, -16(%rbp)     # save sq(x)
+  mov -8(%rbp), %rdi      # argument: y
+  call sq                 # %rax = sq(y)
+  add -16(%rbp), %rax     # result = sq(x) + sq(y)
+  leave                   # throw away dist2's frame
+  ret                     # return result in %rax
+
+main:
+  push %rbp
+  mov %rsp, %rbp
+  mov $3, %rdi            # x = 3
+  mov $4, %rsi            # y = 4
+  call dist2              # %rax = dist2(3, 4)
+  pop %rbp
+  ret
+```
+
+[Open it in the ASM Visualizer](https://asm.diveintosystems.org/function/x86_64/%20%20.text%0A%20%20.globl%09sq%0A%20%20.type%09sq%2C%20%40function%0A%0Asq%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20the%20caller's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20sq's%20frame%0A%20%20mov%20%25rdi%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20n%0A%20%20imul%20%25rdi%2C%20%25rax%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20n%20*%20n%0A%20%20pop%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20restore%20the%20caller's%20%25rbp%0A%20%20ret%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20return%20result%20in%20%25rax%0A%20%20.size%09sq%2C%20.-sq%0A%0A%20%20.globl%09dist2%0A%20%20.type%09dist2%2C%20%40function%0A%0Adist2%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20main's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20dist2's%20frame%0A%20%20sub%20%2416%2C%20%25rsp%20%20%20%20%20%20%20%20%20%20%20%23%20room%20for%20y%20and%20sq(x)%0A%20%20mov%20%25rsi%2C%20-8(%25rbp)%20%20%20%20%20%20%23%20save%20y%3A%20a%20call%20can%20change%20%25rsi%0A%20%20call%20sq%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20%25rax%20%3D%20sq(x)%3B%20x%20is%20already%20in%20%25rdi%0A%20%20mov%20%25rax%2C%20-16(%25rbp)%20%20%20%20%20%23%20save%20sq(x)%0A%20%20mov%20-8(%25rbp)%2C%20%25rdi%20%20%20%20%20%20%23%20argument%3A%20y%0A%20%20call%20sq%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20%25rax%20%3D%20sq(y)%0A%20%20add%20-16(%25rbp)%2C%20%25rax%20%20%20%20%20%23%20result%20%3D%20sq(x)%20%2B%20sq(y)%0A%20%20leave%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20throw%20away%20dist2's%20frame%0A%20%20ret%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20return%20result%20in%20%25rax%0A%20%20.size%09dist2%2C%20.-dist2%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20push%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%0A%20%20mov%20%243%2C%20%25rdi%20%20%20%20%20%20%20%20%20%20%20%20%23%20x%20%3D%203%0A%20%20mov%20%244%2C%20%25rsi%20%20%20%20%20%20%20%20%20%20%20%20%23%20y%20%3D%204%0A%20%20call%20dist2%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20%25rax%20%3D%20dist2(3%2C%204)%0A%20%20pop%20%25rbp%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A%0A). `%rax` ends at 25.
+
+| Address | Value | |
+|---|---|---|
+| 0xd00 | 0xd20 (`dist2`'s `%rbp`) | ← `%rsp`, `%rbp` |
+| 0xd08 | return address into `dist2` | |
+| 0xd10 | (`sq(x)`, not saved yet) | ← `dist2`'s `%rsp` |
+| 0xd18 | 4 (`y`) | |
+| 0xd20 | 0xd40 (`main`'s `%rbp`) | ← `dist2`'s `%rbp` |
+| 0xd28 | return address into `main` | |
+| 0xd30 | | ← `main`'s `%rsp` |
+| 0xd38 | | |
+| 0xd40 | (saved by `main`) | ← `main`'s `%rbp` |
+
+`dist2` keeps two values on the stack across calls: `y` and `sq(x)`. Each `call` pushes at `%rsp`, so `dist2` has to move `%rsp` below those values first, and `leave` puts it back. `sq` calls nothing, so nothing will be pushed on top of its frame.
+
+- **`y` has to be saved before the first call.** It arrives in `%rsi`, and `sq` is allowed to change `%rsi`. Our `sq` happens not to, but you can't count on that.
+- **`x` doesn't need saving.** It's already in `%rdi`, where `sq` wants its argument, and `dist2` never needs it again.
+- **Your slots may be in a different order.** That's fine, as long as each saved value is in `dist2`'s frame.
+- **Three frames, same layout.** In each one, the return address is at `8(%rbp)` and the caller's `%rbp` is at `0(%rbp)`.
+
+</details>
+
+</div>
+
+## Problem 4
+
+This one is compiled by `gcc` without optimization. The listing is cleaned up a little: it uses the 64-bit registers and function names instead of call addresses.
+
+<div class="board-example" markdown="1">
+<p class="board-title">Problem 4 — what does it print?</p>
 
 ```c
 long setup(long n) {
@@ -422,89 +375,59 @@ use:
 ## More Practice
 
 <div class="board-example" markdown="1">
-<p class="board-title">Problem 4 — a call in a loop</p>
-
-```c
-long square(long n) {
-    return n * n;
-}
-```
-
-```text
-square:
-  401126:  push   %rbp
-  401127:  mov    %rsp,%rbp
-  40112a:  mov    %rdi,-0x8(%rbp)
-  40112e:  mov    -0x8(%rbp),%rax
-  401132:  imul   %rax,%rax
-  401136:  pop    %rbp
-  401137:  ret
-
-main:
-  401138:  push   %rbp
-  401139:  mov    %rsp,%rbp
-  40113c:  sub    $0x10,%rsp
-  401140:  movq   $0x0,-0x10(%rbp)
-  401148:  movq   $0x1,-0x8(%rbp)
-  401150:  jmp    L2
-L1:
-  401152:  mov    -0x8(%rbp),%rax
-  401156:  mov    %rax,%rdi
-  401159:  call   square
-  40115e:  add    %rax,-0x10(%rbp)
-  401162:  addq   $0x1,-0x8(%rbp)
-L2:
-  401167:  cmpq   $0x3,-0x8(%rbp)
-  40116c:  jle    L1
-  40116e:  mov    -0x10(%rbp),%rax
-  401172:  mov    %rax,%rsi
-  401175:  mov    $0x402004,%rdi
-  40117a:  mov    $0x0,%rax
-  40117f:  call   printf
-  401184:  mov    $0x0,%rax
-  401189:  leave
-  40118a:  ret
-```
-
-After `main` sets up its frame, `%rsp` is 0xd30 and `%rbp` is 0xd40.
+<p class="board-title">Problem 5 — a call in a loop</p>
 
 <div class="board-setup" markdown="1">
 
-1. Write the C for `main`. The format string is `"%ld\n"`.
-2. How many times does `call square` run? What return address does it push each time?
-3. What are `%rsp` and `%rbp` inside `square` each time? Where is `n`?
-4. What is the value at `-0x10(%rbp)` after each trip through the loop? What does the program print?
+```c
+int main(void) {
+    long total = 0;
+    for (long i = 1; i <= 3; i++) {
+        total = total + sq(i);
+    }
+    return total;
+}
+```
+
+1. Using `sq` from Problem 3, write `main`.
+2. Where did you keep `total` and `i`? Why not in registers?
+3. How many times does `call sq` run? Does it push the same return address each time?
 
 </div>
 
 <details class="board-answer" markdown="1">
 <summary>Answers</summary>
 
-```c
-int main(void) {
-    long total = 0;
-    for (long i = 1; i <= 3; i++) {
-        total = total + square(i);
-    }
-    printf("%ld\n", total);
-    return 0;
-}
+```text
+main:
+  push %rbp
+  mov %rsp, %rbp
+  sub $16, %rsp           # room for total and i
+  movq $0, -8(%rbp)       # total = 0
+  movq $1, -16(%rbp)      # i = 1
+  jmp main_test           # go to the test
+main_loop:
+  mov -16(%rbp), %rdi     # argument: i
+  call sq                 # %rax = sq(i)
+  add %rax, -8(%rbp)      # total = total + sq(i)
+  addq $1, -16(%rbp)      # i++
+main_test:
+  cmpq $3, -16(%rbp)      # compare i with 3
+  jle main_loop           # if i <= 3, go back
+  mov -8(%rbp), %rax      # return total;
+  leave
+  ret
 ```
 
-1. `total` is at `-0x10(%rbp)` and `i` at `-0x8(%rbp)`. The `jmp` down to the test and the `jle` back up are a `for` loop.
-2. Three times, and it pushes 0x15e every time. It is the same `call` instruction each time.
-3. `%rsp` and `%rbp` are 0xd20 every time, and `n` is at 0xd18. It holds 1, then 2, then 3.
-4. 1, then 5, then 14. The program prints `14`.
+[Open it in the ASM Visualizer](https://asm.diveintosystems.org/function/x86_64/%20%20.text%0A%20%20.globl%09sq%0A%20%20.type%09sq%2C%20%40function%0A%0Asq%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20the%20caller's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20sq's%20frame%0A%20%20mov%20%25rdi%2C%20%25rax%20%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20n%0A%20%20imul%20%25rdi%2C%20%25rax%20%20%20%20%20%20%20%20%20%23%20result%20%3D%20n%20*%20n%0A%20%20pop%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20restore%20the%20caller's%20%25rbp%0A%20%20ret%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20return%20result%20in%20%25rax%0A%20%20.size%09sq%2C%20.-sq%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20push%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%0A%20%20sub%20%2416%2C%20%25rsp%20%20%20%20%20%20%20%20%20%20%20%23%20room%20for%20total%20and%20i%0A%20%20movq%20%240%2C%20-8(%25rbp)%20%20%20%20%20%20%20%23%20total%20%3D%200%0A%20%20movq%20%241%2C%20-16(%25rbp)%20%20%20%20%20%20%23%20i%20%3D%201%0A%20%20jmp%20main_test%20%20%20%20%20%20%20%20%20%20%20%23%20go%20to%20the%20test%0Amain_loop%3A%0A%20%20mov%20-16(%25rbp)%2C%20%25rdi%20%20%20%20%20%23%20argument%3A%20i%0A%20%20call%20sq%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20%25rax%20%3D%20sq(i)%0A%20%20add%20%25rax%2C%20-8(%25rbp)%20%20%20%20%20%20%23%20total%20%3D%20total%20%2B%20sq(i)%0A%20%20addq%20%241%2C%20-16(%25rbp)%20%20%20%20%20%20%23%20i%2B%2B%0Amain_test%3A%0A%20%20cmpq%20%243%2C%20-16(%25rbp)%20%20%20%20%20%20%23%20compare%20i%20with%203%0A%20%20jle%20main_loop%20%20%20%20%20%20%20%20%20%20%20%23%20if%20i%20%3C%3D%203%2C%20go%20back%0A%20%20mov%20-8(%25rbp)%2C%20%25rax%20%20%20%20%20%20%23%20return%20total%3B%0A%20%20leave%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A%0A). `%rax` ends at 14.
 
-- **Every call to `square` gets the same frame.** The loop runs inside `main`'s frame, so `%rsp` is the same at every `call`.
-- **`add %rax,-0x10(%rbp)` uses the return value straight from `%rax`.** `total = total + square(i)` takes one instruction after the `call`.
-
-[Open it in Compiler Explorer](https://godbolt.org/clientstate/eyJzZXNzaW9ucyI6W3siaWQiOjEsImxhbmd1YWdlIjoiYyIsInNvdXJjZSI6IiNpbmNsdWRlIDxzdGRpby5oPlxuXG5sb25nIHNxdWFyZShsb25nIG4pIHtcbiAgICByZXR1cm4gbiAqIG47XG59XG5cbmludCBtYWluKHZvaWQpIHtcbiAgICBsb25nIHRvdGFsID0gMDtcbiAgICBmb3IgKGxvbmcgaSA9IDE7IGkgPD0gMzsgaSsrKSB7XG4gICAgICAgIHRvdGFsID0gdG90YWwgKyBzcXVhcmUoaSk7XG4gICAgfVxuICAgIHByaW50ZihcIiVsZFxcblwiLCB0b3RhbCk7XG4gICAgcmV0dXJuIDA7XG59XG4iLCJjb21waWxlcnMiOlt7ImlkIjoiY2cxNjIiLCJvcHRpb25zIjoiIiwiZmlsdGVycyI6eyJiaW5hcnlPYmplY3QiOnRydWUsImludGVsIjpmYWxzZSwibGFiZWxzIjp0cnVlLCJsaWJyYXJ5Q29kZSI6dHJ1ZSwiZGlyZWN0aXZlcyI6dHJ1ZSwiY29tbWVudE9ubHkiOnRydWUsImRlbWFuZ2xlIjp0cnVlfX1dfV19) or [run it in the ASM Visualizer](https://asm.diveintosystems.org/function/x86_64/%20%20.section%20.rodata%0A.LC0%3A%0A%20%20.string%20%22%25ld%5Cn%22%0A%0A%20%20.text%0A%20%20.globl%09square%0A%20%20.type%09square%2C%20%40function%0A%0Asquare%3A%0A%20%20pushq%20%25rbp%0A%20%20movq%20%25rsp%2C%20%25rbp%0A%20%20movq%20%25rdi%2C%20-8(%25rbp)%0A%20%20movq%20-8(%25rbp)%2C%20%25rax%0A%20%20imulq%20%25rax%2C%20%25rax%0A%20%20popq%20%25rbp%0A%20%20ret%0A%20%20.size%09square%2C%20.-square%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20pushq%20%25rbp%0A%20%20movq%20%25rsp%2C%20%25rbp%0A%20%20subq%20%2416%2C%20%25rsp%0A%20%20movq%20%240%2C%20-16(%25rbp)%0A%20%20movq%20%241%2C%20-8(%25rbp)%0A%20%20jmp%20.L4%0A.L5%3A%0A%20%20movq%20-8(%25rbp)%2C%20%25rax%0A%20%20movq%20%25rax%2C%20%25rdi%0A%20%20call%20square%0A%20%20addq%20%25rax%2C%20-16(%25rbp)%0A%20%20addq%20%241%2C%20-8(%25rbp)%0A.L4%3A%0A%20%20cmpq%20%243%2C%20-8(%25rbp)%0A%20%20jle%20.L5%0A%20%20movq%20-16(%25rbp)%2C%20%25rax%0A%20%20movq%20%25rax%2C%20%25rsi%0A%20%20movq%20%24.LC0%2C%20%25rdi%0A%20%20movq%20%240%2C%20%25rax%0A%20%20call%20printf%0A%20%20movq%20%240%2C%20%25rax%0A%20%20leave%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A).
+1. See above.
+2. On the stack, in `main`'s frame. `main` needs both after every call, and a call can change any of the caller-saved registers.
+3. Three times, and it pushes the same return address each time: it's the same `call` instruction.
 
 </details>
 
 </div>
-
 
 For more practice, try the [Exercises from the book for §7.5](https://diveintosystems.org/exercises/section-7_5.html).
 
