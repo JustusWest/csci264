@@ -40,7 +40,7 @@ int main(void) {
 
 We'll leave out the `printf`, since the visualizer doesn't show what it prints.
 
-So far we've used the ASM Visualizer's Arithmetic Mode, which writes the function setup for you and hides it. Today we use **Function Mode**, which hides nothing. You write each function yourself, from its label to its `ret`, plus a `main` that calls it. The lines that start with `.` (`.globl`, `.type`, `.size`) tell the assembler where each function begins and ends. They don't run. Open a [blank Function Mode](https://asm.diveintosystems.org/function/x86_64) to follow along.
+So far we've used the ASM Visualizer's Arithmetic Mode, which writes the function setup for you and hides it. Today we use **Function Mode**, which hides nothing. You write each function yourself, from its label to its `ret`, plus a `main` that calls it. Open a [blank Function Mode](https://asm.diveintosystems.org/function/x86_64) to follow along.
 
 ## call, ret, and leave
 
@@ -97,6 +97,22 @@ main:
 [Open it in the ASM Visualizer](https://asm.diveintosystems.org/function/x86_64/%20%20.text%0A%20%20.globl%09adder2%0A%20%20.type%09adder2%2C%20%40function%0A%0Aadder2%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20main's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20adder2's%20frame%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20(the%20body%20goes%20here)%0A%20%20pop%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20restore%20main's%20%25rbp%0A%20%20ret%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20go%20back%20to%20main%0A%20%20.size%09adder2%2C%20.-adder2%0A%0A%20%20.globl%09main%0A%20%20.type%09main%2C%20%40function%0A%0Amain%3A%0A%20%20push%20%25rbp%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20save%20the%20caller's%20%25rbp%0A%20%20mov%20%25rsp%2C%20%25rbp%20%20%20%20%20%20%20%20%20%20%23%20start%20main's%20frame%0A%20%20sub%20%2416%2C%20%25rsp%20%20%20%20%20%20%20%20%20%20%20%23%20room%20for%20x%0A%20%20call%20adder2%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20adder2()%3B%0A%20%20leave%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%23%20throw%20away%20main's%20frame%0A%20%20ret%0A%20%20.size%09main%2C%20.-main%0A)
 
 </details>
+
+### Directives
+
+The lines that start with `.` are **directives**. They are instructions for the assembler, not the CPU. They make no machine code, so they never run and get no address.
+
+| Directive | Meaning |
+|---|---|
+| `.text` | What follows is code. It goes in the Code part of program memory. |
+| `.globl adder2` | Other files can use the name `adder2`. The linker needs this to connect a `call` in one file to a function in another. |
+| `.type adder2, @function` | `adder2` is a function, not data. |
+| `.size adder2, .-adder2` | How many bytes `adder2` takes up. |
+
+- **`.` means "the current address."** On the `.size` line, that's the address right after `ret`. So `.-adder2` is where the function ends minus where it starts: its length in bytes. In the skeleton, `adder2` starts at 0x401106 and `main` starts at 0x40110C, so `adder2` is 6 bytes.
+- **`main` needs `.globl` too.** The code that starts your program is in another file, and it calls `main`.
+- **One `.text` covers the whole file.** Every function after it is code.
+- **Every function gets the same three lines:** `.globl` and `.type` before the label, `.size` after the `ret`. Only the name changes.
 
 ## How %rip Moves
 
