@@ -45,7 +45,7 @@ x is: 42
 
 Let's write this program in a [blank Function Mode](https://asm.diveintosystems.org/function/x86_64), one function at a time, using the four parts from last time.
 
-**Local variables live in the frame.** Each local gets an 8-byte slot below `%rbp`, starting at `-8(%rbp)`. Each of our three functions has one local, so each one uses `-8(%rbp)`.
+**Local variables live in the stack frame.** Each local gets an 8-byte slot below `%rbp`, starting at `-8(%rbp)`. Each of our three functions has one local, so each one uses `-8(%rbp)`.
 
 | C | Assembly |
 |---|---|
