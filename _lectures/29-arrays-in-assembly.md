@@ -84,9 +84,7 @@ This is the operand arrays need. If `%rdi` holds the base address of a `long` ar
 | `x = arr[0];` | `long` | ? |
 | `x = arr[i];` | `long` | ? |
 | `x = arr[5];` | `long` | ? |
-| `x = *(arr + 5);` | `long` | ? |
 | `x = &arr[3];` | `long *` | ? |
-| `x = arr + 3;` | `long *` | ? |
 | `x = &arr[i];` | `long *` | ? |
 | `arr[i] = x;` | — | ? |
 
