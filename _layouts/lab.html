@@ -51,8 +51,12 @@ layout: page
 {%- if sources.size > 0 %}
 <h2 id="source-files">Source files</h2>
 
+{%- if page.source_note %}
+<p>{{ page.source_note | markdownify | remove: '<p>' | remove: '</p>' | strip }}</p>
+{%- else %}
 <p>Download the starter files below and write your code where the
 <code>TODO</code> comments are. Do not rename them.</p>
+{%- endif %}
 
 {%- for f in sources %}
 <div class="lab-source">
