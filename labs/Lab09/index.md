@@ -62,6 +62,8 @@ callgrind_annotate before.out | head -30
 
 Valgrind prints a few lines of its own that start with something like `==12345==`. That's normal. The line to look for in the second command's output is `PROGRAM TOTALS`.
 
+For what the rest of the output means, see [Basic Usage](https://valgrind.org/docs/manual/cl-manual.html#cl-manual.basics) in the Callgrind manual.
+
 To pick out `min_max`:
 
 ```bash
