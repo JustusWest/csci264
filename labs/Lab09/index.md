@@ -3,9 +3,12 @@ title: "Lab 9 — Hand-Optimizing Assembly"
 order: 9
 due: "Tuesday, November 24"
 source_note: "This is the program you will optimize. You don't need to change the C."
+handout_first: true
 ---
 
-The handout below has the full instructions. This page collects its commands so you can copy and paste them into the terminal. Run all of them from your Lab 9 directory, on the lab machines.
+## Terminal Commands
+
+Read the handout above first: it has the full instructions. This section only collects its commands so you can copy and paste them into the terminal. Run all of them from your Lab 9 directory, on the lab machines.
 
 ## Get the Files
 

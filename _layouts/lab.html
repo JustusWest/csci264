@@ -29,8 +29,11 @@ layout: page
 <p class="lab-due"><strong>Due:</strong> {{ page.due }}</p>
 {%- endif %}
 
-{{ content }}
-
+{%- comment -%}
+  The handout normally comes after the page text. A lab can set
+  handout_first: true to put the handout above it instead.
+{%- endcomment -%}
+{%- capture handout_html %}
 {%- if handouts.size > 0 %}
 <h2 id="handout">Handout</h2>
 
@@ -46,6 +49,17 @@ layout: page
      <a href="{{ f.path | relative_url }}">Download {{ f.name }}</a> instead.</p>
 </object>
 {%- endfor %}
+{%- endif %}
+{%- endcapture -%}
+
+{%- if page.handout_first %}
+{{ handout_html }}
+
+{{ content }}
+{%- else %}
+{{ content }}
+
+{{ handout_html }}
 {%- endif %}
 
 {%- if sources.size > 0 %}
