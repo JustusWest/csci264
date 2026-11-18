@@ -4,5 +4,5 @@ _site/
 demo/
 Gemfile.lock
 a.out
-*.s
+
 _private/

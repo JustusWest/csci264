@@ -70,10 +70,12 @@ For what the rest of the output means, see [Basic Usage](https://valgrind.org/do
 To pick out `min_max`:
 
 ```bash
-callgrind_annotate before.out | grep min_max
+callgrind_annotate --threshold=100 before.out | grep min_max
 ```
 
 The output is one line. The first number on it is the count for `min_max`.
+
+`--threshold=100` matters. Without it, `callgrind_annotate` stops listing functions once it has covered 99% of the total, and an optimized `min_max` is small enough to be left off.
 
 ## Part 4: Optimize min_max
 
@@ -84,7 +86,7 @@ gcc stats.s -o stats
 ./stats < big.txt > after.txt
 diff before.txt after.txt
 valgrind --tool=callgrind --callgrind-out-file=after.out ./stats < big.txt > /dev/null
-callgrind_annotate after.out | grep min_max
+callgrind_annotate --threshold=100 after.out | grep min_max
 ```
 
 To start over from `gcc`'s version:
@@ -100,12 +102,12 @@ Build a second program at `-O1` and measure its `min_max`. It may print warnings
 ```bash
 gcc -O1 stats.c -o stats_O1
 valgrind --tool=callgrind --callgrind-out-file=O1.out ./stats_O1 < big.txt > /dev/null
-callgrind_annotate O1.out | grep min_max
+callgrind_annotate --threshold=100 O1.out | grep min_max
 ```
 
 ## If Something Goes Wrong
 
 - **`./stats` just sits there.** It's waiting for you to type the input. You forgot `< big.txt`. Press Ctrl-C and run it again.
-- **`grep min_max` prints nothing.** Check that `min_max:` and the lines starting with `.type` and `.size` near it are still in `stats.s`. Valgrind uses them to find the function.
+- **`grep min_max` prints nothing.** Check that the command has `--threshold=100`. Then check that `min_max:` and the lines starting with `.type` and `.size` near it are still in `stats.s`. Valgrind uses them to find the function.
 - **`valgrind: command not found`.** You're not on a lab machine.
 - **`gcc stats.s` gives an error with a line number.** That line of `stats.s` has a typo. Each error message tells you the line.
