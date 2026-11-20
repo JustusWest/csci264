@@ -4,7 +4,7 @@ title: Labs
 permalink: /labs/
 ---
 
-Lab assignments and starter files, one page per lab. I will do my best to keep this consistent with Canvas, but you should default to what is on Canvas.
+Lab assignments and any related files such as starter code, input files, etc. I will do my best to keep this consistent with Canvas, but you should default to what is on Canvas.
 
 {% comment %}
   Lists every labs/<something>/index.md. The `where: "name", "index.md"` step

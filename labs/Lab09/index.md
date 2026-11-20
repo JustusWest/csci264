@@ -6,6 +6,8 @@ source_note: "This is the program you will optimize. You don't need to change th
 handout_first: true
 ---
 
+See the `stats.s` file as a starting point.
+
 ## Terminal Commands
 
 Read the handout above first: it has the full instructions. This section only collects its commands so you can copy and paste them into the terminal. Run all of them from your Lab 9 directory, on the lab machines.
